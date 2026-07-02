@@ -2105,9 +2105,9 @@
                 }
             }
         }else{
-            if(file_exists(__DIR__ . '/pp-content/pp-install/index.php')){
+            if(file_exists(__DIR__ . '/install/index.php')){
                 $site_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]" . rtrim(dirname($_SERVER['PHP_SELF']), '/\\') . '/';
-                require __DIR__ . '/pp-content/pp-install/index.php';
+                require __DIR__ . '/install/index.php';
             }else{
                 if(file_exists(__DIR__ . '/pp-404.php')){
                     http_response_code(404);

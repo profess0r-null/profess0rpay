@@ -7208,14 +7208,18 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                     'message' => $message,
                                     'csrf_token' => $new_csrf_token
                                 ]);
+                                exit();
                             }else{
                                 echo json_encode(['status' => 'true', 'title' => 'Transactions '.$actionsID, 'message' => 'The selected transactions have been '.$actionsID.' successfully.', 'csrf_token' => $new_csrf_token]);
+                                exit();
                             }
                         } else {
                             echo json_encode(['status' => 'false', 'title' => 'Transactions Failed', 'message' => 'No transactions selected.' , 'csrf_token' => $new_csrf_token]);
+                            exit();
                         }
                 }else{
                     echo json_encode(['status' => 'false', 'title' => 'Request Failed', 'message' => 'Invalid request' , 'csrf_token' => $new_csrf_token]);
+                    exit();
                 }
             }
 

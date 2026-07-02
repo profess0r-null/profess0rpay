@@ -4,8 +4,59 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
 $install_lock = __DIR__ . '/install.lock';
-if (file_exists($install_lock)) {
-    die("<html><body style='font-family:sans-serif; text-align:center; padding-top:100px;'><h2>Installation already completed!</h2><p>Please delete the <b>install</b> folder for security reasons.</p></body></html>");
+$step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
+
+if (file_exists($install_lock) && $step !== 4) {
+    header("HTTP/1.0 404 Not Found");
+    die('<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>404 - Not Found</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: \'Inter\', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #1a202c;
+            color: #a0aec0;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .code {
+            font-size: 24px;
+            font-weight: 500;
+            padding-right: 20px;
+            border-right: 1px solid #4a5568;
+            letter-spacing: 2px;
+            color: #e2e8f0;
+        }
+        .message {
+            font-size: 16px;
+            font-weight: 400;
+            padding-left: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="code">404</div>
+        <div class="message">Not Found</div>
+    </div>
+</body>
+</html>');
 }
 
 $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
@@ -52,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $admin_name = $_POST['admin_name'] ?? '';
         $admin_email = $_POST['admin_email'] ?? '';
         $admin_pass = $_POST['admin_pass'] ?? '';
+        $admin_pass_confirm = $_POST['admin_pass_confirm'] ?? '';
 
         $db_host = $_SESSION['db_host'] ?? '';
         $db_name = $_SESSION['db_name'] ?? '';
@@ -60,6 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($admin_email) || empty($admin_pass) || empty($db_name)) {
             $error = "All fields are required!";
+        } elseif ($admin_pass !== $admin_pass_confirm) {
+            $error = "Passwords do not match!";
         } else {
             try {
                 $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8", $db_user, $db_pass);
@@ -77,17 +131,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $pdo->exec($query);
                         }
                     }
+                    
+                    // Clean up any demo data from the imported SQL file
+                    $tables_to_clean = ['pp_customer', 'pp_transaction', 'pp_sms_data', 'pp_api', 'pp_invoice', 'pp_invoice_items', 'pp_payment_link', 'pp_payment_link_field', 'pp_device', 'pp_browser_log', 'pp_webhook_log', 'pp_gateways', 'pp_gateways_parameter', 'pp_domain', 'pp_faq', 'pp_currency'];
+                    foreach ($tables_to_clean as $table) {
+                        $pdo->exec('TRUNCATE TABLE ' . $table);
+                    }
+                    
+                    // Insert default BDT currency so general settings can be saved
+                    $pdo->exec("INSERT INTO pp_currency (brand_id, code, symbol, rate, created_date, updated_date) VALUES ('9675068878', 'BDT', '৳', 1.00000000, NOW(), NOW())");
+                    $pdo->exec("UPDATE pp_brands SET name='Profess0rPay', favicon='http://localhost/Profess0rPay/assets/images/default_favicon.png', redirect_url='', support_email_address='--', support_phone_number='--', support_website='--', whatsapp_number='--', telegram='--', facebook_messenger='--', facebook_page='--'");
+                    $pdo->exec("UPDATE pp_env SET value='--' WHERE option_name IN ('last-auto-update-check', 'last-update-version-name', 'last-update-version')");
+                    
                 } else {
                     throw new Exception("database.sql file not found!");
                 }
-
                 // Step 5: Admin Account Creation
-                $hashed_pass = md5($admin_pass); // Match existing system's hashing
+                $hashed_pass = password_hash($admin_pass, PASSWORD_BCRYPT); // Match existing system's hashing
                 $stmt = $pdo->prepare("DELETE FROM pp_admin"); // Clear existing admins
                 $stmt->execute();
-
-                $stmt = $pdo->prepare("INSERT INTO pp_admin (name, email, password) VALUES (?, ?, ?)");
-                $stmt->execute([$admin_name, $admin_email, $hashed_pass]);
+                
+                $a_id = "0242809184"; // Must match the default permission record in database.sql
+                $stmt = $pdo->prepare("INSERT INTO pp_admin (a_id, full_name, username, email, password, status, role) VALUES (?, ?, 'admin', ?, ?, 'active', 'super_admin')");
+                $stmt->execute([$a_id, $admin_name, $admin_email, $hashed_pass]);
 
                 // Update Config File
                 $config_file = dirname(__DIR__) . '/pp-config.php';
@@ -122,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PipraPay Setup Wizard</title>
+    <title>Profess0rPay Setup Wizard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -139,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="w-full md:w-1/3 bg-gray-50 border-r border-gray-100 p-8 flex flex-col">
             <h2 class="text-xl font-bold text-gray-800 mb-8 flex items-center gap-2">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e2136e" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                PipraPay
+                Profess0rPay
             </h2>
             
             <div class="relative flex-1">
@@ -230,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Database Name</label>
-                        <input type="text" name="db_name" placeholder="e.g. piprapay_db" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e2136e] focus:border-[#e2136e] outline-none transition" required>
+                        <input type="text" name="db_name" placeholder="e.g. profess0rpay_db" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e2136e] focus:border-[#e2136e] outline-none transition" required>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -266,10 +332,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                         <input type="email" name="admin_email" placeholder="admin@domain.com" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e2136e] focus:border-[#e2136e] outline-none transition" required>
                     </div>
-                    <div>
+                    <div class="relative">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input type="password" name="admin_pass" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e2136e] focus:border-[#e2136e] outline-none transition" required minlength="6">
+                        <input type="password" name="admin_pass" id="admin_pass" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e2136e] focus:border-[#e2136e] outline-none transition" required minlength="6">
+                        <button type="button" onclick="togglePassword('admin_pass', this)" class="absolute right-3 top-9 text-gray-400 hover:text-gray-600">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
                     </div>
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                        <input type="password" name="admin_pass_confirm" id="admin_pass_confirm" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e2136e] focus:border-[#e2136e] outline-none transition" required minlength="6">
+                        <button type="button" onclick="togglePassword('admin_pass_confirm', this)" class="absolute right-3 top-9 text-gray-400 hover:text-gray-600">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
+                    <div id="password-error" class="text-sm font-medium text-red-500 hidden bg-red-50 p-3 rounded-lg border border-red-100"></div>
 
                     <div id="installing-ui" style="display:none;" class="text-center py-4">
                         <svg class="animate-spin h-8 w-8 text-[#e2136e] mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -278,12 +355,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="flex justify-between items-center pt-6" id="btn-group">
                         <a href="?step=2" class="text-gray-500 hover:text-gray-700 font-medium text-sm">Back</a>
-                        <button type="submit" onclick="document.getElementById('installing-ui').style.display='block'; document.getElementById('btn-group').style.display='none';" class="px-6 py-2.5 bg-[#e2136e] hover:bg-[#c90f5f] text-white font-medium rounded-lg transition-colors flex items-center gap-2">
-                            Install PipraPay
+                        <button type="submit" class="px-6 py-2.5 bg-[#e2136e] hover:bg-[#c90f5f] text-white font-medium rounded-lg transition-colors flex items-center gap-2">
+                            Install Profess0rPay
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </button>
                     </div>
                 </form>
+                <script>
+                    function togglePassword(inputId, btn) {
+                        const input = document.getElementById(inputId);
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+                        } else {
+                            input.type = 'password';
+                            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+                        }
+                    }
+                    document.getElementById('adminForm').addEventListener('submit', function(e) {
+                        const errDiv = document.getElementById('password-error');
+                        errDiv.classList.add('hidden');
+                        
+                        if (document.getElementById('admin_pass').value !== document.getElementById('admin_pass_confirm').value) {
+                            e.preventDefault();
+                            errDiv.textContent = 'Passwords do not match!';
+                            errDiv.classList.remove('hidden');
+                        } else {
+                            document.getElementById('installing-ui').style.display='block'; 
+                            document.getElementById('btn-group').style.display='none';
+                        }
+                    });
+                </script>
 
             <!-- STEP 4: SUCCESS -->
             <?php elseif($step == 4): ?>
@@ -292,17 +394,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                     </div>
                     <h3 class="text-3xl font-bold text-gray-800 mb-2">Installation Successful!</h3>
-                    <p class="text-gray-500 mb-8">PipraPay has been successfully installed on your server.</p>
+                    <p class="text-gray-500 mb-8">Profess0rPay has been successfully installed on your server.</p>
                     
                     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8 text-sm text-yellow-800 text-left flex gap-3 items-start">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                         <p><strong>Security Warning:</strong> For security reasons, please delete the <b>install</b> folder immediately from your server file manager.</p>
                     </div>
 
-                    <a href="../pp-admin/" class="inline-block px-8 py-3 bg-[#e2136e] hover:bg-[#c90f5f] text-white font-bold rounded-lg transition-colors shadow-lg shadow-pink-200">
-                        Go to Admin Panel
+                    <a href="../login" class="inline-block px-8 py-3 bg-[#e2136e] hover:bg-[#c90f5f] text-white font-bold rounded-lg transition-colors shadow-lg shadow-pink-200">
+                        Go to Admin Panel (Auto redirecting in <span id="countdown">3</span>s...)
                     </a>
                 </div>
+                <script>
+                    let timeLeft = 3;
+                    const countdownEl = document.getElementById('countdown');
+                    const timer = setInterval(() => {
+                        timeLeft--;
+                        countdownEl.textContent = timeLeft;
+                        if (timeLeft <= 0) {
+                            clearInterval(timer);
+                            window.location.href = '../login';
+                        }
+                    }, 1000);
+                </script>
             <?php endif; ?>
 
         </div>

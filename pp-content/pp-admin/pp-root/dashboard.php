@@ -95,11 +95,11 @@ body {
         <input type="hidden" name="csrf_token_default" value="<?= $csrf_token ?>">
 
         <!-- Header Actions -->
-        <div class="d-flex justify-content-end align-items-center mb-4">
-            <div class="d-flex flex-nowrap flex-md-wrap gap-2">
+        <div class="d-flex justify-content-start justify-content-md-end align-items-center mb-4 overflow-x-auto">
+            <div class="d-flex flex-nowrap flex-md-wrap gap-2 pb-1">
                 <a href="<?= $site_url.$path_admin ?>/payment-link" class="btn btn-primary btn-modern" style="background:#4f46e5; border-color:#4f46e5;">+ Payment Link</a>
-                <a href="<?= $site_url.$path_admin ?>/invoice" class="btn btn-light btn-modern text-dark border-0 bg-white shadow-sm">+ Invoice</a>
-                <a href="<?= $site_url.$path_admin ?>/customers" class="btn btn-light btn-modern text-dark border-0 bg-white shadow-sm">Customers</a>
+                <a href="<?= $site_url.$path_admin ?>/gateways" class="btn btn-light btn-modern text-dark border-0 bg-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z" /><path d="M3 7l9 6l9 -6" /></svg> Gateway</a>
+                <a href="<?= $site_url.$path_admin ?>/customers" class="btn btn-light btn-modern text-dark border-0 bg-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-users me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg> Customers</a>
             </div>
         </div>
 
@@ -393,7 +393,6 @@ body {
     }
 
     // Chart logic
-    var chartTransactionStatistics;
     function load_dashboard_transaction_statistics(){
         var csrf_token_default = $('input[name="csrf_token_default"]').val();
         var date = $('#dateFilter-transaction-statistics').val();
