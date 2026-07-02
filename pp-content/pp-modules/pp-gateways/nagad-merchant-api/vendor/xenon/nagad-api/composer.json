@@ -1,0 +1,50 @@
+{
+  "name": "xenon/nagad-api",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Ariful Islam",
+      "email": "arif98741@gmail.com",
+      "homepage": "https://github.com/arif98741",
+      "role": "Developer, Maintainer"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Xenon\\NagadApi\\": "src/"
+    },
+    "psr-0": {
+      "UnitTestFiles": ""
+    }
+  },
+  "support": {
+    "email": "arif98741@gmail.com"
+  },
+  "require": {
+    "php": "^7.3|^8.0|^8.1|^8.2",
+    "ext-curl": "*",
+    "ext-json": "*",
+    "nesbot/carbon": "^2.59",
+    "ext-openssl": "*"
+  },
+  "description": "This is Bangladeshi nagad payment gateway api development library for php. This library can be used easily as pacakge dependency in your php application.",
+  "keywords": [
+    "nagad",
+    "payment gateway",
+    "api",
+    "nagad payment gateway",
+    "Bangladeshi payment gateway",
+    "nagad php library",
+    "payment gateway",
+    "nagad php sdk",
+    "nagad php api",
+    "nagad sdk",
+    "nagad gateway"
+  ],
+  "minimum-stability": "stable",
+  "require-dev": {
+    "phpunit/phpunit": "^7.3|^8.1.3|^9.0.2"
+  },
+  "homepage": "https://github.com/arif98741/nagadApi"
+}

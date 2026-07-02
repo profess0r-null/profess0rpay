@@ -1,0 +1,14 @@
+RewriteEngine On
+
+Options -Indexes
+
+RewriteCond %{THE_REQUEST} \s/+(.+?\.php)[\s?] [NC]
+RewriteCond %1 !^index\.php$
+RewriteRule ^ - [F,L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+
+RewriteRule ^(.+)$ index.php?page=$1 [QSA,L]

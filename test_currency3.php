@@ -1,0 +1,1 @@
+<?php require 'pp-config.php'; $conn = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8", $db_user, $db_pass); $stmt = $conn->query("SELECT * FROM {$db_prefix}currency"); print_r($stmt->fetchAll(PDO::FETCH_ASSOC)); $stmt2 = $conn->query("SELECT * FROM {$db_prefix}gateways WHERE slug='binance-personal'"); print_r($stmt2->fetchAll(PDO::FETCH_ASSOC)); ?>
