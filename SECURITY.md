@@ -13,7 +13,7 @@ Currently, only the latest release is actively supported with security updates.
 
 Please do not report security vulnerabilities through public GitHub issues.
 
-Instead, please report them directly to the maintainers by emailing `sakibulhasantalukder2006@gmail.com`.
+Instead, please report them directly to the maintainers by emailing `profess0r.null.xyz@gmail.com`.
 
 We will try to acknowledge your email within 48 hours, and we'll send a more detailed response within 5 days indicating the next steps in handling your report.
 
