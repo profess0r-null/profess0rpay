@@ -14,7 +14,7 @@ Profess0rPay is an open-source payment automation system (AGPL-3.0) — a self-h
 
 ## 📱 Official Android Companion App
 Manage your transactions, notifications, and gateways directly from your smartphone!
-**Download the official App:** [BillPax Tools on Google Play](https://play.google.com/store/apps/details?id=com.qubeplug.billpax_tools)
+**Download the official App:** [Google Play Store](https://play.google.com/store/apps/details?id=com.qubeplug.billpax_tools)
 
 ---
 
