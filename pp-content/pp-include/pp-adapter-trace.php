@@ -7244,7 +7244,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
 
                         set_env('last-auto-update-check', getCurrentDatetime('Y-m-d H:i:s'));
 
-                        $manifest = json_decode(file_get_contents('https://updates.professorpay.com/manifest.json'), true);
+                        $manifest = json_decode(file_get_contents(''), true);
 
                         $current_code = $professorpay_current_version['version_code'];
                         $current_name = $professorpay_current_version['version_name'];
@@ -7322,7 +7322,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         }
 
                         if($update_available == true){
-                            $url = "https://updates.professorpay.com/download.php?version=$lasted_update_version";
+                            $url = "";
 
                             $saveDir =  __DIR__ . '/../../pp-media/storage/updates/';
 

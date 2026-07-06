@@ -221,8 +221,8 @@
                                         'id'            => $brandRow['brand_id'],
                                         'name'          => ($brandRow['name'] == "--") ? $brandRow['identify_name'] : $brandRow['name'],
                                         'identifyName'  => $brandRow['identify_name'],
-                                        'logo'          => $brandRow['logo'] !== '--' ? $brandRow['logo'] : 'https://help.professorpay.com/storage/branding_media/8a5c6ee4-8eba-401d-bffb-c43006d5f65d.png',
-                                        'favicon'       => $brandRow['favicon'] !== '--' ? $brandRow['favicon'] : 'https://help.professorpay.com/favicon/icon-144x144.png',
+                                        'logo'          => $brandRow['logo'] !== '--' ? $brandRow['logo'] : '',
+                                        'favicon'       => $brandRow['favicon'] !== '--' ? $brandRow['favicon'] : '',
 
                                         'support' => [
                                             'email'   => $brandRow['support_email_address'],
@@ -372,8 +372,10 @@
                         }
 
                         $rawInput = file_get_contents("php://input");
+                        file_put_contents('debug.txt', "Raw: " . $rawInput . "\n", FILE_APPEND);
 
                         $data = json_decode($rawInput, true);
+                        file_put_contents('debug.txt', "Parsed: " . print_r($data, true) . "\n\n", FILE_APPEND);
 
                         if (!$data) {
                             http_response_code(400);
@@ -1144,8 +1146,8 @@
                                         'id'            => $brandRow['brand_id'],
                                         'name'          => ($brandRow['name'] == "--") ? $brandRow['identify_name'] : $brandRow['name'],
                                         'identifyName'  => $brandRow['identify_name'],
-                                        'logo'          => $brandRow['logo'] !== '--' ? $brandRow['logo'] : 'https://help.professorpay.com/storage/branding_media/8a5c6ee4-8eba-401d-bffb-c43006d5f65d.png',
-                                        'favicon'       => $brandRow['favicon'] !== '--' ? $brandRow['favicon'] : 'https://help.professorpay.com/favicon/icon-144x144.png',
+                                        'logo'          => $brandRow['logo'] !== '--' ? $brandRow['logo'] : '',
+                                        'favicon'       => $brandRow['favicon'] !== '--' ? $brandRow['favicon'] : '',
 
                                         'support' => [
                                             'email'   => $brandRow['support_email_address'],
@@ -1436,8 +1438,8 @@
                                         'id'            => $brandRow['brand_id'],
                                         'name'          => ($brandRow['name'] == "--") ? $brandRow['identify_name'] : $brandRow['name'],
                                         'identifyName'  => $brandRow['identify_name'],
-                                        'logo'          => $brandRow['logo'] !== '--' ? $brandRow['logo'] : 'https://help.professorpay.com/storage/branding_media/8a5c6ee4-8eba-401d-bffb-c43006d5f65d.png',
-                                        'favicon'       => $brandRow['favicon'] !== '--' ? $brandRow['favicon'] : 'https://help.professorpay.com/favicon/icon-144x144.png',
+                                        'logo'          => $brandRow['logo'] !== '--' ? $brandRow['logo'] : '',
+                                        'favicon'       => $brandRow['favicon'] !== '--' ? $brandRow['favicon'] : '',
 
                                         'support' => [
                                             'email'   => $brandRow['support_email_address'],
@@ -1547,8 +1549,8 @@
                                         'id'            => $brandRow['brand_id'],
                                         'name'          => ($brandRow['name'] == "--") ? $brandRow['identify_name'] : $brandRow['name'],
                                         'identifyName'  => $brandRow['identify_name'],
-                                        'logo'          => $brandRow['logo'] !== '--' ? $brandRow['logo'] : 'https://help.professorpay.com/storage/branding_media/8a5c6ee4-8eba-401d-bffb-c43006d5f65d.png',
-                                        'favicon'       => $brandRow['favicon'] !== '--' ? $brandRow['favicon'] : 'https://help.professorpay.com/favicon/icon-144x144.png',
+                                        'logo'          => $brandRow['logo'] !== '--' ? $brandRow['logo'] : '',
+                                        'favicon'       => $brandRow['favicon'] !== '--' ? $brandRow['favicon'] : '',
 
                                         'support' => [
                                             'email'   => $brandRow['support_email_address'],
@@ -1705,8 +1707,8 @@
                                             'id'            => $brandRow['brand_id'],
                                             'name'          => ($brandRow['name'] == "--") ? $brandRow['identify_name'] : $brandRow['name'],
                                             'identifyName'  => $brandRow['identify_name'],
-                                            'logo'          => $brandRow['logo'] !== '--' ? $brandRow['logo'] : 'https://help.professorpay.com/storage/branding_media/8a5c6ee4-8eba-401d-bffb-c43006d5f65d.png',
-                                            'favicon'       => $brandRow['favicon'] !== '--' ? $brandRow['favicon'] : 'https://help.professorpay.com/favicon/icon-144x144.png',
+                                            'logo'          => $brandRow['logo'] !== '--' ? $brandRow['logo'] : '',
+                                            'favicon'       => $brandRow['favicon'] !== '--' ? $brandRow['favicon'] : '',
                                                 
                                             'support' => [
                                                 'email'   => $brandRow['support_email_address'],
@@ -1815,7 +1817,7 @@
                                     if (strtotime(getCurrentDatetime('Y-m-d H:i:s')) - strtotime(get_env('last-auto-update-check') ?: getCurrentDatetime('Y-m-d H:i:s')) >= 10*3600) {
                                         set_env('last-auto-update-check', getCurrentDatetime('Y-m-d H:i:s'));
 
-                                        $manifest = json_decode(file_get_contents('https://updates.professorpay.com/manifest.json'), true);
+                                        $manifest = json_decode(file_get_contents(''), true);
 
                                         $current_code = $professorpay_current_version['version_code'];
                                         $current_name = $professorpay_current_version['version_name'];

@@ -435,7 +435,7 @@
                     <div class="row text-center align-items-center flex-row-reverse">
                         <div class="col-lg-auto ms-lg-auto">
                             <ul class="list-inline list-inline-dots mb-0">
-                                <li class="list-inline-item"><a href="https://help.professorpay.com/" target="_blank" class="link-secondary" rel="noopener">Documentation</a></li>
+                                <li class="list-inline-item"><a href="#" target="_blank" class="link-secondary" rel="noopener">Documentation</a></li>
                                 <li class="list-inline-item"><a href="https://github.com/professorpay" target="_blank" class="link-secondary">Modules</a></li>
                             </ul>
                         </div>
@@ -443,10 +443,10 @@
                             <ul class="list-inline list-inline-dots mb-0">
                                 <li class="list-inline-item">
                                     © <?php echo date('Y');?>
-                                    <a href="https://professorpay.com/" class="link-secondary" target="blank">Profess0rPay</a>. All rights reserved.
+                                    <a href="#" class="link-secondary" target="blank">Profess0rPay</a>. All rights reserved.
                                 </li>
                                 <li class="list-inline-item">
-                                    <a href="https://updates.professorpay.com/?version=<?php echo $professorpay_current_version['version_code'];?>" class="link-secondary" target="blank"target="blank"> <?php echo $professorpay_current_version['version_name'];?> </a>
+                                    <a href="#'version_code'];?>" class="link-secondary" target="blank"target="blank"> <?php echo $professorpay_current_version['version_name'];?> </a>
                                 </li>
                             </ul>
                         </div>

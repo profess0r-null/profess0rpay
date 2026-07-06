@@ -60,7 +60,7 @@ if ($global_user_login == true) {
 
                         <div class="mb-3">
                             <label class="form-label">Email or Username</label>
-                            <input type="text" class="form-control" name="username" placeholder="Enter email or username" value="<?php echo isset($pp_demo_mode) ? "demo@professorpay.com" : ""; ?>" required>
+                            <input type="text" class="form-control" name="username" placeholder="Enter email or username" value="<?php echo isset($pp_demo_mode) ? "demo@example.com" : ""; ?>" required>
                         </div>
                         <div class="mb-2">
                             <label class="form-label">
