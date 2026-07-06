@@ -380,13 +380,14 @@
                             echo json_encode([
                                 'error' => [
                                     'code'    => 'INVALID_JSON_PAYLOAD',
-                                    'message' => 'The JSON payload is invalid or malformed.'
+                                    'message' => 'The JSON payload is invalid or malformed. Debug: ' . json_last_error_msg(),
+                                    'raw_input' => $rawInput
                                 ]
                             ]);
                             exit;
                         }
 
-                        if($api_type == "checkout"){
+                        if($api_type == "checkout" || $api_type == "create-payment"){
                             $api_scopes = $response_api['response'][0]['api_scopes'] ?? [];
                             if (is_string($api_scopes)) {
                                 $api_scopes = json_decode($api_scopes, true);
@@ -407,15 +408,16 @@
 
                             $checkout_type = $segments[2] ?? null;
 
-                            if($checkout_type == "redirect"){
-                                $fullName      = $data['full_name'] ?? '';
-                                $email         = $data['email_address'] ?? '';
-                                $mobile        = $data['mobile_number'] ?? '';
+                            if($checkout_type == "redirect" || $api_type == "create-payment"){
+                                $fullName      = $data['full_name'] ?? $data['customer_name'] ?? '';
+                                $email         = $data['email_address'] ?? $data['customer_email'] ?? '';
+                                $mobile        = $data['mobile_number'] ?? $data['customer_mobile'] ?? '';
                                 $amount        = $data['amount'] ?? '0';
                                 $currency      = $data['currency'] ?? 'BDT';
                                 $returnUrl     = $data['return_url'] ?? '';
                                 $webhookUrl    = $data['webhook_url'] ?? '';
-                                $metadataRaw   = $data['metadata'] ?? '{}';
+                                $metadataRaw   = isset($data['metadata']) ? (is_array($data['metadata']) ? json_encode($data['metadata']) : $data['metadata']) : '{}';
+
 
                                 function getDomainFromUrl($url) {
                                     // Check if it's a valid URL
@@ -761,7 +763,17 @@
                                             insertData($db_prefix.'customer', $columns, $values);
                                         }
 
-                                        echo json_encode(['pp_id' => $payment_id, 'pp_url' => $site_url.$path_payment.'/'.$payment_id]);
+                                        http_response_code(200);
+                                        if ($api_type == "create-payment") {
+                                            echo json_encode([
+                                                'status' => true,
+                                                'message' => 'Payment created successfully',
+                                                'checkout_url' => $site_url.$path_payment.'/'.$payment_id
+                                            ]);
+                                        } else {
+                                            echo json_encode(['pp_id' => $payment_id, 'pp_url' => $site_url.$path_payment.'/'.$payment_id]);
+                                        }
+                                        exit;
                                     }else{
                                         http_response_code(400);
                                         echo json_encode([
@@ -1023,11 +1035,11 @@
                                         }
                                     }
                                 }else{
-                                    http_response_code(400);
+                                    http_response_code(404);
                                     echo json_encode([
                                         'error' => [
-                                            'code'    => 'INVALID_JSON_PAYLOAD',
-                                            'message' => 'The JSON payload is invalid or malformed.'
+                                            'code'    => 'INVALID_ENDPOINT',
+                                            'message' => 'The API endpoint you are trying to reach does not exist.'
                                         ]
                                     ]);
                                 }

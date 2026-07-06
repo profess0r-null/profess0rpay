@@ -65,14 +65,28 @@
     function getAuthorizationHeader() {
         if (function_exists('getallheaders')) {
             $headers = getallheaders();
-            if (isset($headers['MHS-PROFESS0RPAY-API-KEY'])) {
-                return trim($headers['MHS-PROFESS0RPAY-API-KEY']);
-            }
-            if (isset($headers['MHS-PIPRAPAY-API-KEY'])) {
-                return trim($headers['MHS-PIPRAPAY-API-KEY']);
+            foreach ($headers as $key => $val) {
+                if (strtolower($key) === 'authorization') {
+                    if (stripos(trim($val), 'Bearer ') === 0) {
+                        return substr(trim($val), 7);
+                    }
+                }
+                if (strtolower($key) === 'mhs-profess0rpay-api-key') {
+                    return trim($val);
+                }
+                if (strtolower($key) === 'mhs-piprapay-api-key') {
+                    return trim($val);
+                }
             }
         }
     
+        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $auth = trim($_SERVER['HTTP_AUTHORIZATION']);
+            if (stripos($auth, 'Bearer ') === 0) {
+                return substr($auth, 7);
+            }
+        }
+
         foreach ($_SERVER as $key => $value) {
             if (stripos($key, 'HTTP_MHS_PROFESS0RPAY_API_KEY') !== false || stripos($key, 'HTTP_MHS_PIPRAPAY_API_KEY') !== false) {
                 return trim($value);
