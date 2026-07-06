@@ -4,6 +4,13 @@
 
     define('Profess0rPay_INIT', true);
 
+    if (!file_exists(__DIR__ . '/pp-config.php')) {
+        if(file_exists(__DIR__ . '/install/index.php')){
+            header('Location: install/');
+            exit;
+        }
+    }
+
     if (date_default_timezone_get() !== 'UTC') {
         date_default_timezone_set('UTC');
     }
