@@ -715,9 +715,7 @@
                 return;
             }
 
-            // Use the Clipboard API
-            navigator.clipboard.writeText(content).then(() => {
-                // Success toast
+            const copySuccess = () => {
                 createToast({
                     title: title,
                     description: description,
@@ -725,8 +723,9 @@
                     timeout: 4000,
                     top: 70
                 });
-            }).catch((err) => {
-                // Error toast
+            };
+
+            const copyFail = (err) => {
                 createToast({
                     title: 'Failed!',
                     description: 'Unable to copy the content. Please try manually.',
@@ -735,7 +734,26 @@
                     top: 70
                 });
                 console.error('Clipboard error:', err);
-            });
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(content).then(copySuccess).catch(copyFail);
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = content;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    copySuccess();
+                } catch (err) {
+                    copyFail(err);
+                }
+                document.body.removeChild(textArea);
+            }
         }
 
         function show_two_step_verify_tab(btnClass) {
