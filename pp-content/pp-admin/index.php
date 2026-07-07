@@ -443,10 +443,10 @@
                             <ul class="list-inline list-inline-dots mb-0">
                                 <li class="list-inline-item">
                                     © <?php echo date('Y');?>
-                                    <a href="#" class="link-secondary" target="blank">Profess0rPay</a>. All rights reserved.
+                                    <a href="https://github.com/profess0r-null/profess0rpay" class="link-secondary" target="_blank">Profess0rPay</a>. All rights reserved.
                                 </li>
                                 <li class="list-inline-item">
-                                    <a href="#'version_code'];?>" class="link-secondary" target="blank"target="blank"> <?php echo $professorpay_current_version['version_name'];?> </a>
+                                    <a href="https://github.com/profess0r-null/profess0rpay/releases/tag/<?php echo $professorpay_current_version['version_name'];?>" class="link-secondary" target="_blank"><?php echo $professorpay_current_version['version_name'];?></a>
                                 </li>
                             </ul>
                         </div>
