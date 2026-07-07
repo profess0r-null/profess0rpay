@@ -67,13 +67,13 @@ if (!defined('Profess0rPay_INIT')) {
         
         <div class="row row-cards">
             <div class="col-md-6">
-                <div class="card p-3">
+                <div class="card p-3 h-100">
                     <h5 class="card-title text-muted mb-2">Current Version</h5>
                     <h2 class="mb-0 fw-bold text-primary">v<?= htmlspecialchars($currentVersion) ?></h2>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card p-3">
+                <div class="card p-3 h-100">
                     <h5 class="card-title text-muted mb-2">Latest Version</h5>
                     <?php if ($latestRelease && isset($latestRelease['tag_name'])): ?>
                         <?php $latestVer = str_replace('v', '', $latestRelease['tag_name']); ?>
