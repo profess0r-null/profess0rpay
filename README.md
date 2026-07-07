@@ -64,7 +64,8 @@ This project was built to expand upon open-source payment automation capabilitie
 
 ## 📅 Release Strategy
 
-- **v1.0** — Stable (Current): Installer, White-label Branding, Admin Panel, Payment Links, REST API, UI Mobile Fixes, Security Enhancements.
+- **v1.0.1** — Patch (Current): Merchant Return URL redirect fixes.
+- **v1.0.0** — Stable: Installer, White-label Branding, Admin Panel, Payment Links, REST API, UI Mobile Fixes, Security Enhancements.
 - **v1.1** — Planned: WooCommerce Plugin / PHP SDK.
 - **v1.2** — Planned: Docker Support & GitHub Actions (CI).
 - **v2.0** — Planned: Merchant System, New Gateways, Better UI.

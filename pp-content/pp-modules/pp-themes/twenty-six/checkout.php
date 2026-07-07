@@ -856,8 +856,8 @@
               
         <!-- Header -->
         <div class="checkout-header-bar">
-            <div onclick="event.preventDefault(); event.stopPropagation(); history.back();" class="header-icon-btn" title="Back">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0" /><path d="M5 12l6 6" /><path d="M5 12l6 -6" /></svg>
+            <div onclick="event.preventDefault(); event.stopPropagation(); <?php echo $has_return ? 'location.href=\''.addslashes($return_url).'\';' : 'history.back();'; ?>" class="header-icon-btn" title="Back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0" /><path d="M5 12l6 6" /><path d="M5 12l6 -6" /></svg>
             </div>
             <div onclick="event.preventDefault(); event.stopPropagation(); showCancelModal();" class="header-icon-btn" title="Close">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
@@ -956,7 +956,7 @@
                         <span class="label">Invoice ID</span>
                         <span class="value" style="display:flex; align-items:center; gap:8px; max-width: 60vw;">
                             <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($data['transaction']['ref']); ?></span>
-                            <div style="cursor:pointer; color:#64748b; display:flex; flex-shrink: 0;" onclick="copy_value('<?php echo htmlspecialchars($data['transaction']['ref']); ?>')" title="Copy">
+                            <div style="cursor:pointer; color:#64748b; display:flex; flex-shrink: 0;" onclick="pp_copy('<?php echo htmlspecialchars($data['transaction']['ref']); ?>', 'Invoice ID copied!')" title="Copy">
                                 <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="14px" width="14px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
                             </div>
                         </span>
@@ -971,11 +971,11 @@
                     </div>
                     <div class="invoice-detail-row">
                         <span class="label">Customer Name</span>
-                        <span class="value"><?php echo !empty($data['transaction']['customer_name']) ? htmlspecialchars($data['transaction']['customer_name']) : 'N/A'; ?></span>
+                        <span class="value"><?php echo !empty($data['transaction']['customer']['name']) ? htmlspecialchars($data['transaction']['customer']['name']) : 'N/A'; ?></span>
                     </div>
                     <div class="invoice-detail-row">
                         <span class="label">Email</span>
-                        <span class="value"><?php echo !empty($data['transaction']['customer_email']) ? htmlspecialchars($data['transaction']['customer_email']) : 'N/A'; ?></span>
+                        <span class="value"><?php echo !empty($data['transaction']['customer']['email']) ? htmlspecialchars($data['transaction']['customer']['email']) : 'N/A'; ?></span>
                     </div>
                     <div class="invoice-detail-row amount-row">
                         <span class="label">Amount</span>
@@ -1133,19 +1133,6 @@
             }
         }
 
-        function copy_value(content) {
-            if (!content) return;
-            navigator.clipboard.writeText(content).then(function() {
-                if (typeof createToast === 'function') {
-                    createToast({
-                        title: 'Copied',
-                        description: 'Invoice ID copied to clipboard',
-                        timeout: 1500,
-                        top: 20
-                    });
-                }
-            });
-        }
     </script>
 
 

@@ -253,7 +253,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
         logoutCookie();
 ?>
         <script>
-           location.href = '<?php echo $site_url.'login'?>';
+           location.href = '<?php echo rtrim($site_url, "/")."/".$path_admin."/login" ?>';
         </script>
 <?php
     }
@@ -4729,6 +4729,27 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                     $default_timezone = escape_string($_POST['default_timezone'] ?? '');
                     $webhook_attempts_limit = escape_string($_POST['webhook_attempts_limit'] ?? '');
 
+                    // Validation
+                    $paths = [
+                        'Admin path' => $adminPath,
+                        'Invoice path' => $invoicePath,
+                        'Payment Link path' => $paymentLinkPath,
+                        'Checkout path' => $paymentPath,
+                        'Cron path' => $cronPath
+                    ];
+
+                    foreach ($paths as $name => $pathValue) {
+                        if (!empty($pathValue) && !preg_match('/^[a-z0-9-]+$/', $pathValue)) {
+                            echo json_encode(['status' => 'false', 'title' => 'Validation Failed', 'message' => $name . ' must contain only lowercase letters, numbers, and dashes.' , 'csrf_token' => $new_csrf_token]);
+                            exit();
+                        }
+                    }
+
+                    if (!empty($homepageRedirect) && !filter_var('http://' . $homepageRedirect, FILTER_VALIDATE_URL)) {
+                        echo json_encode(['status' => 'false', 'title' => 'Validation Failed', 'message' => 'Homepage Redirect must be a valid domain or URL.' , 'csrf_token' => $new_csrf_token]);
+                        exit();
+                    }
+
                     set_env('geneal-application-settings-homepageRedirect', $homepageRedirect);
                     set_env('geneal-application-settings-adminPath', $adminPath);
                     set_env('geneal-application-settings-invoicePath', $invoicePath);
@@ -5509,6 +5530,32 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                     }
                 }else{
                     echo json_encode(['status' => 'false', 'title' => 'Request Failed', 'message' => 'Invalid request' , 'csrf_token' => $new_csrf_token]);
+                }
+            }
+
+            if ($action == "edit-device-name") {
+                if ($global_user_login == true) {
+                    if (!canAccessPage(json_decode($global_response_permission['response'][0]['permission'], true), 'device', $global_user_response['response'][0]['role'])) {
+                        echo json_encode(['status' => 'false', 'title' => 'Access denied', 'message' => 'You need permission to perform this action.', 'csrf_token' => $new_csrf_token]);
+                        exit();
+                    }
+
+                    $device_id = escape_string($_POST['device_id'] ?? '');
+                    $new_name  = escape_string($_POST['name'] ?? '');
+
+                    if ($device_id != '' && $new_name != '') {
+                        $update = updateData($db_prefix . 'device', ['name'], [$new_name], "device_id = '{$device_id}'");
+                        if ($update) {
+                            echo json_encode(['status' => 'true', 'title' => 'Success', 'message' => 'Device name updated successfully!', 'csrf_token' => $new_csrf_token]);
+                            exit();
+                        } else {
+                            echo json_encode(['status' => 'false', 'title' => 'Failed', 'message' => 'Could not update device name.', 'csrf_token' => $new_csrf_token]);
+                            exit();
+                        }
+                    } else {
+                        echo json_encode(['status' => 'false', 'title' => 'Error', 'message' => 'Invalid data provided.', 'csrf_token' => $new_csrf_token]);
+                        exit();
+                    }
                 }
             }
 
@@ -8664,6 +8711,93 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
 
 
 
+            if ($action == "process-system-update") {
+                if ($global_user_login == true) {
+                    $step = escape_string($_POST['step'] ?? '');
+                    
+                    while (ob_get_level() > 0) ob_end_clean();
+                    header('Content-Type: application/json');
+                    
+                    require_once __DIR__ . '/class-updater.php';
+                    $updater = new Profess0rPayUpdater();
+                    
+                    try {
+                        if ($step == '1') {
+                            // Step 1: Preflight & Download
+                            $release = $updater->getLatestRelease();
+                            if (!$release || isset($release['message'])) throw new \Exception("Could not fetch release from GitHub.");
+                            
+                            $zipUrl = '';
+                            foreach ($release['assets'] as $asset) {
+                                if (substr($asset['name'], -4) === '.zip' && $asset['name'] !== 'update.json') {
+                                    $zipUrl = $asset['browser_download_url'];
+                                    break;
+                                }
+                            }
+                            if (!$zipUrl) throw new \Exception("No update.zip found.");
+                            
+                            $updater->lock(); 
+                            $updater->stepDownload($zipUrl);
+                            
+                            echo json_encode(['status' => 'success']);
+                        } 
+                        elseif ($step == '2') {
+                            $updater->stepExtract();
+                            echo json_encode(['status' => 'success']);
+                        }
+                        elseif ($step == '3') {
+                            $updater->stepInstall();
+                            
+                            // Update version in DB
+                            $targetVersion = escape_string($_POST['target_version'] ?? '');
+                            if ($targetVersion) {
+                                $pdo = connectDatabase();
+                                $stmt = $pdo->prepare("SELECT COUNT(*) FROM `{$db_prefix}env` WHERE `option_name` = 'pp_version'");
+                                $stmt->execute();
+                                if($stmt->fetchColumn() > 0) {
+                                    $pdo->prepare("UPDATE `{$db_prefix}env` SET `value` = ? WHERE `option_name` = 'pp_version'")->execute([$targetVersion]);
+                                } else {
+                                    $pdo->prepare("INSERT INTO `{$db_prefix}env` (`brand_id`, `option_name`, `value`, `created_date`) VALUES ('both', 'pp_version', ?, ?)")->execute([$targetVersion, date('Y-m-d H:i:s')]);
+                                }
+                            }
+                            echo json_encode(['status' => 'success']);
+                        }
+                        elseif ($step == '4') {
+                            $updater->stepCleanup();
+                            
+                            $targetVersion = escape_string($_POST['target_version'] ?? '');
+                            if ($targetVersion) {
+                                $pdo = connectDatabase();
+                                $pdo->prepare("INSERT INTO `{$db_prefix}update_logs` (`version`, `status`, `log`) VALUES (?, 'Success', 'System successfully updated to latest version.')")->execute([$targetVersion]);
+                            }
+                            
+                            echo json_encode(['status' => 'success']);
+                        }
+                        else {
+                            throw new \Exception("Invalid step.");
+                        }
+                        exit;
+                        
+                    } catch (\Throwable $e) {
+                        try { $updater->unlock(); } catch (\Throwable $ue) {}
+                        
+                        $targetVersion = escape_string($_POST['target_version'] ?? '');
+                        if ($targetVersion) {
+                            try {
+                                $pdo = connectDatabase();
+                                $pdo->prepare("INSERT INTO `{$db_prefix}update_logs` (`version`, `status`, `log`) VALUES (?, 'Failed', ?)")->execute([$targetVersion, substr($e->getMessage(), 0, 255)]);
+                            } catch (\Throwable $dbE) {}
+                        }
+                        
+                        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+                        exit;
+                    }
+                } else {
+                    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+                    exit;
+                }
+            }
+
         }
 
         exit();
@@ -9281,7 +9415,8 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                         } else {
                                                             unset($_SESSION['verify_attempt_'.$txn_id]);
                                                             // No matching SMS — push to pending
-                                                            $matched_trxid = '--';
+                                                            $posted_trxid = trim(escape_string($_POST['trxid'] ?? ''));
+                                                            $matched_trxid = ($posted_trxid !== '') ? $posted_trxid : '--';
                                                             $columns = ['processing_fee','discount_amount','local_net_amount','local_currency','gateway_id','sender_key','status','sender','trx_id','updated_date'];
                                                             $values  = [money_sanitize($totalProcessingFee), money_sanitize($totalDiscount), money_sanitize($convertedAmount), $response_gateway['response'][0]['currency'], $gateway_id, $gateway_info['sender_key'], 'pending', $mobile_number, $matched_trxid, getCurrentDatetime('Y-m-d H:i:s')];
                                                             updateData($db_prefix.'transaction', $columns, $values, 'id ="'.$txn_id.'"');
@@ -9961,7 +10096,6 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                     }
                 }
             }
-
 
         }
         exit();

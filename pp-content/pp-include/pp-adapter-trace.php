@@ -253,7 +253,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
         logoutCookie();
 ?>
         <script>
-           location.href = '<?php echo $site_url.'login'?>';
+           location.href = '<?php echo rtrim($site_url, "/")."/".$path_admin."/login" ?>';
         </script>
 <?php
     }

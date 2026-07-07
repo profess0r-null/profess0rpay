@@ -9,12 +9,12 @@
     } else {
         if ($global_user_2fa == true) {
 ?>
-            <script>location.href = "<?php echo $site_url ?>2fa";</script>
+            <script>location.href = "<?php echo rtrim($site_url, '/').'/'.$path_admin ?>/2fa";</script>
 <?php
             exit();
         }else{
 ?>
-            <script>location.href = "<?php echo $site_url ?>login";</script>
+            <script>location.href = "<?php echo rtrim($site_url, '/').'/'.$path_admin ?>/login";</script>
 <?php
             exit();
         }
@@ -922,7 +922,13 @@
         initHugeRTE();
 
         function getAdminPath(url) {
-            let cleanUrl = url.split('?')[0]; 
+            let cleanUrl = url.split('?')[0];
+            let adminBase = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>';
+            
+            if (cleanUrl === adminBase || cleanUrl === adminBase + '/') {
+                return 'dashboard';
+            }
+            
             let index = cleanUrl.indexOf('<?php echo $path_admin?>/');
             if (index === -1) return '';
             
@@ -1044,11 +1050,11 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             let currentUrlV = window.location.href;
+            let baseUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>';
 
-            if(currentUrlV == '<?php echo $site_url.$path_admin ?>/'){
-                var currentUrl = '<?php echo $site_url.$path_admin ?>/dashboard';
-            }else{
-                var currentUrl = window.location.href;
+            var currentUrl = currentUrlV;
+            if (currentUrlV.split('?')[0] === baseUrl || currentUrlV.split('?')[0] === baseUrl + '/') {
+                currentUrl = baseUrl + '/dashboard' + (window.location.search || '');
             }
 
             const cleanPath = getAdminPath(currentUrl);

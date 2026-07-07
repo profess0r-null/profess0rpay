@@ -176,6 +176,28 @@
     </div>
 </div>
 
+<!-- Edit Device Name Modal -->
+<div class="modal fade" id="modal-editDeviceName" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Device Name</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Device Name</label>
+              <input type="text" class="form-control" id="edit-device-name-input" placeholder="e.g. My Galaxy S24">
+              <input type="hidden" id="edit-device-id-input">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveDeviceName()">Save changes</button>
+          </div>
+        </div>
+    </div>
+</div>
 <!--extra requirement-->
 <!--extra requirement-->
 <!--extra requirement-->
@@ -548,6 +570,7 @@
                     res.response.forEach(item => {
                         let allowBalanceVerification = <?= hasPermission(json_decode($global_response_permission['response'][0]['permission'], true), 'device', 'balance_verification_for', $global_user_response['response'][0]['role']) ? 'true' : 'false' ?>;
                         let allowDelete = <?= hasPermission(json_decode($global_response_permission['response'][0]['permission'], true), 'device', 'delete', $global_user_response['response'][0]['role']) ? 'true' : 'false' ?>;
+                        let allowEdit = <?= (hasPermission(json_decode($global_response_permission['response'][0]['permission'], true), 'device', 'edit', $global_user_response['response'][0]['role']) || hasPermission(json_decode($global_response_permission['response'][0]['permission'], true), 'device', 'delete', $global_user_response['response'][0]['role'])) ? 'true' : 'false' ?>;
                         let redirectEdit = '';
                         let redirectDelete = '';
                         let redirectBalanceVerification = '';
@@ -559,6 +582,8 @@
                         if (allowDelete) {
                             redirectDelete = `onclick="deleteItem('${item.id}')"`;
                         }
+
+                        let safeName = String(item.name).replace(/"/g, '&quot;').replace(/'/g, '\\\'').replace(/(\r\n|\n|\r)/gm, " ");
 
                         html += `
                             <tr data-id="${item.id}">
@@ -572,6 +597,7 @@
                                     <span class="dropdown" style="position: unset;">
                                         <button class="btn dropdown-toggle align-text-top" data-bs-boundary="viewport" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>
                                         <div class="dropdown-menu dropdown-menu-end" style="">
+                                            <a class="dropdown-item ${allowEdit ? '' : 'd-none'}" href="javascript:void(0)" onclick="openEditDeviceNameModal('${item.id}', '${safeName}')"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-pencil"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" /><path d="M13.5 6.5l4 4" /></svg> Edit Name </a>
                                             <a class="dropdown-item ${allowBalanceVerification ? '' : 'd-none'}" href="javascript:void(0)" ${redirectBalanceVerification}> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-rosette-discount-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 7.2a2.2 2.2 0 0 1 2.2 -2.2h1a2.2 2.2 0 0 0 1.55 -.64l.7 -.7a2.2 2.2 0 0 1 3.12 0l.7 .7c.412 .41 .97 .64 1.55 .64h1a2.2 2.2 0 0 1 2.2 2.2v1c0 .58 .23 1.138 .64 1.55l.7 .7a2.2 2.2 0 0 1 0 3.12l-.7 .7a2.2 2.2 0 0 0 -.64 1.55v1a2.2 2.2 0 0 1 -2.2 2.2h-1a2.2 2.2 0 0 0 -1.55 .64l-.7 .7a2.2 2.2 0 0 1 -3.12 0l-.7 -.7a2.2 2.2 0 0 0 -1.55 -.64h-1a2.2 2.2 0 0 1 -2.2 -2.2v-1a2.2 2.2 0 0 0 -.64 -1.55l-.7 -.7a2.2 2.2 0 0 1 0 -3.12l.7 -.7a2.2 2.2 0 0 0 .64 -1.55v-1" /><path d="M9 12l2 2l4 -4" /></svg> Balance Verification </a>
                                             <a class="dropdown-item btnDeleteItem-${item.id} ${allowDelete ? '' : 'd-none'}" href="javascript:void(0)" ${redirectDelete}> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg> Delete </a>
                                         </div>
@@ -639,4 +665,55 @@
             load_data_list(1);
         });
     });
+
+    window.openEditDeviceNameModal = function(deviceId, currentName) {
+        document.getElementById('edit-device-id-input').value = deviceId;
+        document.getElementById('edit-device-name-input').value = currentName;
+        $('#modal-editDeviceName').modal('show');
+    };
+
+    window.saveDeviceName = function() {
+        let deviceId = document.getElementById('edit-device-id-input').value;
+        let newName = document.getElementById('edit-device-name-input').value;
+        let csrf_token_default = $('input[name="csrf_token_default"]').val();
+        
+        if (!newName.trim()) {
+            createToast({ title: 'Error', description: 'Device name cannot be empty.', timeout: 3000, top: 70 });
+            return;
+        }
+
+        let formData = new FormData();
+        formData.append('action', 'edit-device-name');
+        formData.append('device_id', deviceId);
+        formData.append('name', newName);
+        formData.append('csrf_token', csrf_token_default);
+
+        $.ajax({
+            url: '<?php echo $site_url.$path_admin ?>/dashboard',
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            dataType: 'json',
+            success: function (res) {
+                if (res.status === 'true') {
+                    document.querySelectorAll('input[name="csrf_token"]').forEach(input => {
+                        input.value = res.csrf_token;
+                    });
+                    document.querySelectorAll('input[name="csrf_token_default"]').forEach(input => {
+                        input.value = res.csrf_token;
+                    });
+
+                    $('#modal-editDeviceName').modal('hide');
+                    load_data_list(1);
+                    createToast({ title: 'Success', description: res.message, timeout: 3000, top: 70 });
+                } else {
+                    createToast({ title: 'Error', description: res.message, timeout: 3000, top: 70 });
+                }
+            },
+            error: function () {
+                createToast({ title: 'Error', description: 'Failed to update device name.', timeout: 3000, top: 70 });
+            }
+        });
+    };
 </script>

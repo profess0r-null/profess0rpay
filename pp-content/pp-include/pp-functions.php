@@ -13,9 +13,16 @@
     $pp_functions_loaded = true;
     
     function pp_site_url($type = "Full") {
-        // Detect protocol
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' 
-                    || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+        // Detect protocol — also handles reverse proxies (cPanel, Cloudflare, load balancers)
+        // that don't set $_SERVER['HTTPS'] but use X-Forwarded-Proto or CF-Visitor instead
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || ($_SERVER['SERVER_PORT'] ?? 80) == 443
+                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+                || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
+                || (isset($_SERVER['HTTP_CF_VISITOR']) && strpos($_SERVER['HTTP_CF_VISITOR'], '"https"') !== false)
+                || (isset($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) === 'on');
+
+        $protocol = $isHttps ? "https://" : "http://";
 
         // Full host with subdomain
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
@@ -2140,9 +2147,72 @@
             echo '
                 <script src="'.$site_url.'assets/js/tabler.min.js"></script>
                 <script src="'.$site_url.'assets/js/jquery-3.6.4.min.js"></script>
-                <script src="'.$site_url.'assets/js/custom-toast.js?v=1.4"></script>
+                <script src="'.$site_url.'assets/js/custom-toast.js?v=1.5"></script>
                 <script src="'.$site_url.'assets/js/choices.min.js"></script>
                 <script src="https://cdn.jsdelivr.net/npm/hugerte@1/hugerte.min.js"></script>
+                <script>
+                    function pp_copy(text, msg = \'Copied!\', el = null) {
+                        let origHtml = \'\';
+                        if(el) {
+                            origHtml = el.innerHTML;
+                            el.innerHTML = \'<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>\';
+                            setTimeout(() => { el.innerHTML = origHtml; }, 1500);
+                        }
+
+                        if (!text) {
+                            if (typeof createToast === "function") {
+                                createToast({
+                                    title: "Error",
+                                    description: "No content to copy",
+                                    svg: \'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d63939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-exclamation-circle"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>\',
+                                    timeout: 1500,
+                                    top: 20
+                                });
+                            }
+                            return;
+                        }
+
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(text).then(function() {
+                                if (typeof createToast === "function") {
+                                    createToast({
+                                        title: "Copied",
+                                        description: msg,
+                                        timeout: 1500,
+                                        top: 20
+                                    });
+                                }
+                            }).catch(function(err) {
+                                console.error("Clipboard API failed:", err);
+                                fallbackCopyTextToClipboard(text, msg);
+                            });
+                        } else {
+                            fallbackCopyTextToClipboard(text, msg);
+                        }
+                    }
+
+                    function fallbackCopyTextToClipboard(text, msg) {
+                        const textarea = document.createElement("textarea");
+                        textarea.value = text;
+                        textarea.style.position = "fixed";
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        try {
+                            document.execCommand("copy");
+                            if (typeof createToast === "function") {
+                                createToast({
+                                    title: "Copied",
+                                    description: msg,
+                                    timeout: 1500,
+                                    top: 20
+                                });
+                            }
+                        } catch (err) {
+                            console.error("Copy failed:", err);
+                        }
+                        document.body.removeChild(textarea);
+                    }
+                </script>
             ';
         }
     }
@@ -3220,15 +3290,9 @@
                     .zini-form-btn { height: 44px; font-size: 13px; }
                 }
                 </style>
-                
-                <div id="zini-success-toast">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#1e8e3e"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 2c5.523 0 10 4.477 10 10a10 10 0 0 1 -19.995 .324l-.005 -.324l.004 -.28c.148 -5.393 4.566 -9.72 9.996 -9.72zm4.243 7.05l-.127 .095l-5.116 5.116l-2.116 -2.116l-.106 -.084a1 1 0 0 0 -1.202 1.5l2.716 2.715l.106 .085a1 1 0 0 0 1.202 0l5.823 -5.822l.084 -.106a1 1 0 0 0 -1.364 -1.383z" /></svg>
-                    Payment confirmed successfully!
-                </div>
-                
                 <div class="zini-page-wrapper">
-                <div class="zini-gateway-card">
-                    <div class="zini-card-top">
+                    <div class="zini-gateway-card">
+                        <div class="zini-card-top">
                     ';
                 
                 if ($nagadBrandedHeader) {
@@ -3561,7 +3625,7 @@
                                         <span style="white-space: nowrap; flex-shrink: 0;">Inv:</span>
                                         <span style="display: inline-block; min-width: 0; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom;">'.$invoice.'</span>
                                     </span>
-                                    <span style="cursor:pointer; color:'.$primaryColor.'; flex-shrink: 0; display: inline-flex; align-items: center; transform: translateY(-1.5px);" onclick="pp_copy(\''.$invoice.'\', \'Invoice Copied!\')">
+                                    <span style="cursor:pointer; color:'.$primaryColor.'; flex-shrink: 0; display: inline-flex; align-items: center; transform: translateY(-1.5px);" onclick="pp_copy(\''.$invoice.'\', \'Invoice Copied!\', this)">
                                         <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="11px" width="11px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
                                     </span>
                                 </div>
@@ -3692,13 +3756,14 @@
                 } else {
                     // DEFAULT TRXID UI
                     echo '
+                    <div id="zini-step-default">
                     <div class="zini-pink-body">
                         <div class="zini-number-box">
                             <div>
                                 <div class="title">PERSONAL NUMBER</div>
                                 <div class="number">'.$personalNumber.'</div>
                             </div>
-                            <div class="zini-copy-btn" onclick="pp_copy(\''.$personalNumber.'\')">
+                            <div class="zini-copy-btn" onclick="pp_copy(\''.$personalNumber.'\', \'Account Number Copied!\')">
                                 <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="18px" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
                             </div>
                         </div>
@@ -3755,6 +3820,7 @@
                         </div>
                         ' : '').'
                     </div>
+                    </div>
                     ';
                 }
 
@@ -3766,10 +3832,15 @@
                         70% { transform: scale(1.1); opacity: 1; }
                         100% { transform: scale(1); opacity: 1; }
                     }
+                    @keyframes pulseRing {
+                        0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+                        70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
+                        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+                    }
                 </style>
                 <div id="zini-step-success" class="d-none">
                     <div class="zini-pink-body" style="text-align: center; padding-top: 40px; padding-bottom: 40px; min-height: 480px; display: flex; flex-direction: column; justify-content: center;">
-                        <div style="background: #fff; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; animation: ziniPopIn 0.5s ease-out forwards;">
+                        <div style="background: #fff; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; animation: ziniPopIn 0.5s ease-out forwards, pulseRing 2s infinite 0.5s;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="'.$primaryColor.'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
                         </div>
                         <h2 style="color: #fff; font-weight: 700; margin-bottom: 10px; font-size: 26px;">Payment Successful</h2>
@@ -3777,12 +3848,12 @@
                         
                         <div style="background: rgba(0,0,0,0.1); border-radius: 8px; padding: 25px 20px; margin-bottom: 30px;">
                             <div style="color: #fff; font-size: 14px; margin-bottom: 15px;">Redirecting to merchant website in</div>
-                            <div id="success-timer-val" style="color: #fff; font-size: 36px; font-weight: 700; margin-bottom: 15px;">10</div>
+                            <div id="success-timer-val" style="color: #fff; font-size: 36px; font-weight: 700; margin-bottom: 15px;">8</div>
                             <div style="color: rgba(255,255,255,0.7); font-size: 12px; letter-spacing: 2px;">SECONDS</div>
                         </div>
                         
                         <div style="color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 20px;">Please do not close this page.</div>
-                        <a href="'.pp_site_url('fulldomain').'/invoice/'.$data['transaction']['ref'].'" target="_blank" style="display: inline-block; padding: 12px 24px; background: rgba(255,255,255,0.2); color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px; transition: 0.3s; margin: 0 auto;">Download Receipt</a>
+                        <a href="javascript:void(0)" onclick="downloadReceiptImage()" style="display: inline-block; padding: 12px 24px; background: rgba(255,255,255,0.2); color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px; transition: 0.3s; margin: 0 auto; border: 1px solid rgba(255,255,255,0.3);">Download Receipt</a>
                     </div>
                 </div>';
                 
@@ -3812,10 +3883,21 @@
                 }
                 
                 global $site_url, $path_payment_link;
-                $final_return_url = !empty($data['transaction']['return_url']) ? $data['transaction']['return_url'] : pp_checkout_address();
+                
+                $real_return_url = "";
+                if (isset($data["transaction"]["raw_return_url"]) && $data["transaction"]["raw_return_url"] !== "--" && !empty($data["transaction"]["raw_return_url"])) {
+                    $real_return_url = $data["transaction"]["raw_return_url"];
+                } elseif (isset($data["transaction"]["return_url"]) && $data["transaction"]["return_url"] !== "--" && !empty($data["transaction"]["return_url"])) {
+                    $real_return_url = $data["transaction"]["return_url"];
+                } elseif (isset($data["brand"]["redirect_url"]) && $data["brand"]["redirect_url"] !== "--" && !empty($data["brand"]["redirect_url"])) {
+                    $real_return_url = $data["brand"]["redirect_url"];
+                }
+                
+                $final_return_url = !empty($real_return_url) ? $real_return_url : pp_checkout_address();
+                
                 $check_r = rtrim($final_return_url, '/');
                 $check_s = rtrim($site_url, '/');
-                if(empty($data['transaction']['return_url']) || $check_r == $check_s) {
+                if(empty($real_return_url) || $check_r == $check_s) {
                     if($data['transaction']['source'] == 'payment-link') {
                         $pID = '';
                         if(!empty($data['transaction']['metadata'])) {
@@ -3833,25 +3915,6 @@
                 // Add the JS logic
                 echo '
                 <script data-cfasync="false">
-                    function pp_copy(text, msg = \'Copied!\') {
-                        const textarea = document.createElement("textarea");
-                        textarea.value = text;
-                        document.body.appendChild(textarea);
-                        textarea.select();
-                        try {
-                            document.execCommand("copy");
-                            const toast = document.getElementById("zini-success-toast");
-                            if (toast) {
-                                toast.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#1e8e3e"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 2c5.523 0 10 4.477 10 10a10 10 0 0 1 -19.995 .324l-.005 -.324l.004 -.28c.148 -5.393 4.566 -9.72 9.996 -9.72zm4.243 7.05l-.127 .095l-5.116 5.116l-2.116 -2.116l-.106 -.084a1 1 0 0 0 -1.202 1.5l2.716 2.715l.106 .085a1 1 0 0 0 1.202 0l5.823 -5.822l.084 -.106a1 1 0 0 0 -1.364 -1.383z" /></svg> ${msg}`;
-                                toast.classList.add("show");
-                                setTimeout(() => toast.classList.remove("show"), 3000);
-                            }
-                        } catch (err) {
-                            console.error("Copy failed:", err);
-                        }
-                        document.body.removeChild(textarea);
-                    }
-
                     function showQrModal() {
                         document.getElementById("zini-qr-modal").style.display = "flex";
                     }
@@ -3859,6 +3922,43 @@
                     function closeQrModal() {
                         document.getElementById("zini-qr-modal").style.display = "none";
                     }
+
+                    window.downloadReceiptImage = function() {
+                        const doCapture = () => {
+                            const el = document.getElementById("zini-step-success");
+                            const btn = el.querySelector("a[onclick=\'downloadReceiptImage()\']");
+                            if (btn) btn.style.display = "none";
+                            
+                            html2canvas(el, {
+                                backgroundColor: "'.($primaryColor ?? '#e63946').'",
+                                useCORS: true,
+                                scale: 2
+                            }).then(canvas => {
+                                if (btn) btn.style.display = "inline-block";
+                                let link = document.createElement("a");
+                                link.download = "receipt-'.$data['transaction']['ref'].'.png";
+                                link.href = canvas.toDataURL("image/png");
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            }).catch(err => {
+                                if (btn) btn.style.display = "inline-block";
+                                console.error("Receipt error:", err);
+                                alert("Failed to generate receipt. Please try again.");
+                            });
+                        };
+
+                        if (typeof html2canvas === "undefined") {
+                            const script = document.createElement("script");
+                            script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+                            script.onload = doCapture;
+                            script.onerror = () => alert("Failed to load receipt generator. Please try again.");
+                            document.head.appendChild(script);
+                        } else {
+                            doCapture();
+                        }
+                    };
+
 
                     document.addEventListener("DOMContentLoaded", function() {
                         const step1 = document.getElementById("zini-step1");
@@ -4012,20 +4112,30 @@
                                         const successTimerVal = document.getElementById("success-timer-val");
                                         
                                         if (toast) toast.classList.add("show");
-                                        if (step1) step1.classList.add("d-none");
-                                        if (step2) step2.classList.add("d-none");
-                                        if (successScreen) successScreen.classList.remove("d-none");
+                                        if (document.getElementById("zini-step1")) document.getElementById("zini-step1").style.display = "none";
+                                        if (document.getElementById("zini-step2")) document.getElementById("zini-step2").style.display = "none";
+                                        if (document.getElementById("zini-step-default")) document.getElementById("zini-step-default").style.display = "none";
+                                        if (successScreen) {
+                                            successScreen.classList.remove("d-none");
+                                            successScreen.style.display = "block";
+                                        }
                                         window.scrollTo({ top: 0, behavior: "smooth" });
                                         
                                         let redirectTimer = 10;
-                                        successTimerVal.textContent = redirectTimer;
+                                        if(successTimerVal) successTimerVal.textContent = redirectTimer;
                                         
+                                        const merchantUrl = "'.$real_return_url.'";
+                                        let finalRedirect = data.redirect ? data.redirect : "'.$final_return_url.'";
+                                        if (merchantUrl !== "" && merchantUrl !== "--") {
+                                            finalRedirect = merchantUrl + (merchantUrl.includes("?") ? "&" : "?") + "pp_status=completed&transaction_ref='.$data['transaction']['ref'].'";
+                                        }
+
                                         const redirectInterval = setInterval(() => {
                                             redirectTimer--;
-                                            successTimerVal.textContent = redirectTimer;
+                                            if(successTimerVal) successTimerVal.textContent = redirectTimer;
                                             if(redirectTimer <= 0) {
                                                 clearInterval(redirectInterval);
-                                                window.location.href = data.redirect ? data.redirect : "'.$final_return_url.'";
+                                                window.location.href = finalRedirect;
                                             }
                                         }, 1000);
                                     }
@@ -4091,25 +4201,37 @@
                                         }
 
                                         // Show Success Animation UI
-                                        const toast = document.getElementById("zini-success-toast");
                                         const successScreen = document.getElementById("zini-step-success");
                                         const successTimerVal = document.getElementById("success-timer-val");
                                         
-                                        if (toast) toast.classList.add("show");
-                                        if (step1) step1.classList.add("d-none");
-                                        if (step2) step2.classList.add("d-none");
-                                        if (successScreen) successScreen.classList.remove("d-none");
+                                        if (document.getElementById("zini-step1")) document.getElementById("zini-step1").style.display = "none";
+                                        if (document.getElementById("zini-step2")) document.getElementById("zini-step2").style.display = "none";
+                                        if (document.getElementById("zini-step-default")) document.getElementById("zini-step-default").style.display = "none";
+                                        if (successScreen) {
+                                            successScreen.classList.remove("d-none");
+                                            successScreen.style.display = "block";
+                                        }
                                         window.scrollTo({ top: 0, behavior: "smooth" });
                                         
-                                        let redirectTimer = 10;
+                                        ';
+
+                                        echo '
+                                        let redirectTimer = 8;
                                         if(successTimerVal) successTimerVal.textContent = redirectTimer;
                                         
+                                        const merchantUrl = "'.$real_return_url.'";
+                                        let finalRedirect = data.redirect ? data.redirect : "'.$final_return_url.'";
+                                        if (merchantUrl !== "" && merchantUrl !== "--") {
+                                            finalRedirect = merchantUrl + (merchantUrl.includes("?") ? "&" : "?") + "pp_status=completed&transaction_ref='.$data['transaction']['ref'].'";
+                                        }
+
+
                                         const redirectInterval = setInterval(() => {
                                             redirectTimer--;
                                             if(successTimerVal) successTimerVal.textContent = redirectTimer;
                                             if(redirectTimer <= 0) {
                                                 clearInterval(redirectInterval);
-                                                window.location.href = data.redirect ? data.redirect : "'.$final_return_url.'";
+                                                window.location.href = finalRedirect;
                                             }
                                         }, 1000);
                                         
@@ -4162,7 +4284,7 @@
                 $g_logo = $response_gateway['response'][0]['logo'];
                 $raw_amount = money_round($data['transaction']['local_net_amount'], 0);
                 $amount = $raw_amount.' '.$data['transaction']['local_currency'];
-                $amount_copy_btn = '<div class="zini-copy-btn" onclick="copy_value(\''.htmlspecialchars($raw_amount, ENT_QUOTES).'\')" title="Copy"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="14px" width="14px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg></div>';
+                $amount_copy_btn = '<div class="zini-copy-btn" onclick="pp_copy(\''.htmlspecialchars($raw_amount, ENT_QUOTES).'\', \'Amount Copied!\', this)" title="Copy"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="14px" width="14px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg></div>';
                 $g_name = $response_gateway['response'][0]['display'];
                 $g_type_label = ($response_gateway['response'][0]['tab'] == 'bank') ? 'Bank Transfer / NPSB' : 'Manual Payment';
                 
@@ -4240,7 +4362,7 @@
                         // Only show copy button for specific fields
                         $allow_copy = in_array($ins['text'], ['bank_step_account_name', 'bank_step_account_number', 'bank_step_branch_name', 'bank_step_routing_number']);
                         if (!empty($ins['copy']) && $allow_copy) {
-                            $copyHtml = '<div class="zini-copy-btn" onclick="copy_value(\''.htmlspecialchars($val, ENT_QUOTES).'\')" title="Copy"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="14px" width="14px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg></div>';
+                            $copyHtml = '<div class="zini-copy-btn" onclick="pp_copy(\''.htmlspecialchars($val, ENT_QUOTES).'\', \''.htmlspecialchars($clean_label, ENT_QUOTES).' Copied!\')" title="Copy"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="14px" width="14px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg></div>';
                         }
                         
                         echo '
@@ -4681,6 +4803,8 @@ if (!function_exists('pp_renderFormFields')) {
                 $amountValue = $data['paymentLink']['total'];
             }
         }
+
+        // Standard customer fields removed as per request. Only custom fields will be rendered.
 
         $html .= '<div class="mb-3">';
         $html .= '<label class="form-label" style="text-align: left; display: block; font-weight: 500;">' . ($data['lang']['amount'] ?? 'Amount') . ' <span class="text-danger">*</span></label>';

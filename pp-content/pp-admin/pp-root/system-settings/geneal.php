@@ -165,7 +165,7 @@ if (!defined('Profess0rPay_INIT')) {
                     </div>
                 </div>
                 <div class="text-end pt-3">
-                    <button class="btn btn-primary btn-geneal-application-settings">Save changes</div>
+                    <button class="btn btn-primary btn-geneal-application-settings">Save changes</button>
                 </div>
             </div>
         </div>
@@ -185,6 +185,29 @@ if (!defined('Profess0rPay_INIT')) {
         var cronPath = $('#cronPath').val();
         var default_timezone = $('#default_timezone').val();
         var webhook_attempts_limit = $('#webhook_attempts_limit').val();
+
+        var pathRegex = /^[a-z0-9-]+$/;
+        var pathsToValidate = [
+            { name: 'Admin path', value: adminPath },
+            { name: 'Invoice path', value: invoicePath },
+            { name: 'Payment Link path', value: paymentLinkPath },
+            { name: 'Checkout path', value: paymentPath },
+            { name: 'Cron path', value: cronPath }
+        ];
+
+        for (var i = 0; i < pathsToValidate.length; i++) {
+            var item = pathsToValidate[i];
+            if (item.value && !pathRegex.test(item.value)) {
+                createToast({
+                    title: 'Invalid Input',
+                    description: item.name + ' must contain only lowercase letters, numbers, and dashes.',
+                    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d63939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>`,
+                    timeout: 6000,
+                    top: 70
+                });
+                return;
+            }
+        }
 
         var btnClass = 'btn-geneal-application-settings';
 

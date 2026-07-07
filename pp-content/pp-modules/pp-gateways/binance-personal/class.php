@@ -166,7 +166,7 @@
 .zini-bnc-footer span { font-size: 13px; color: #6b7280; font-weight: 500; }
 @media (max-width: 640px) {
     .zini-bnc-body { padding: 20px 16px; }
-    .zini-bnc-amount-row { flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px; }
+    .zini-bnc-amount-row { padding: 16px; }
     .zini-bnc-amount-val { font-size: 26px; }
     .zini-bnc-step { gap: 12px; }
     .zini-bnc-box { padding: 12px; }
@@ -190,7 +190,7 @@
             <div class="zini-bnc-amount-label">AMOUNT TO PAY</div>
             <div class="zini-bnc-amount-val">
                 <?php echo $binance_amount ?> <span>USDT</span>
-                <div class="zini-bnc-copy" onclick="bncCopy('<?php echo $binance_amount ?>', 'Copied to clipboard!', this)" title="Copy Amount">
+                <div class="zini-bnc-copy" onclick="pp_copy('<?php echo $binance_amount ?>', 'Amount Copied!')" title="Copy Amount">
                     <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
                 </div>
             </div>
@@ -212,7 +212,7 @@
                     <div class="zini-bnc-box-label">Send exactly to this Binance UID:</div>
                     <div class="zini-bnc-input-wrapper">
                         <input type="text" class="zini-bnc-input-readonly" value="<?php echo htmlspecialchars($uid) ?>" readonly>
-                        <div class="zini-bnc-copy" onclick="bncCopy('<?php echo htmlspecialchars($uid) ?>', 'Copied to clipboard!', this)" title="Copy UID">
+                        <div class="zini-bnc-copy" onclick="pp_copy('<?php echo htmlspecialchars($uid) ?>', 'Binance UID Copied!')" title="Copy UID">
                             <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
                         </div>
                     </div>
@@ -253,19 +253,7 @@
 </div>
 
 <script data-cfasync="false">
-function bncCopy(v, msg, el){
-    var text = msg ? msg : 'Copied to clipboard!';
-    navigator.clipboard.writeText(v).then(function(){
-        if(typeof createToast==='function'){
-            createToast({title:'',description:text, type:'success', svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#22c55e" width="20" height="20"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',timeout:2500,top:20});
-        }
-        if(el) {
-            var orig = el.innerHTML;
-            el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#22c55e" width="1em" height="1em"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
-            setTimeout(function(){ el.innerHTML = orig; }, 2000);
-        }
-    });
-}
+
 document.addEventListener("DOMContentLoaded",function(){
     var form=document.querySelector(".payment-form-submit");
     var btn=form.querySelector(".payment-form-btn");

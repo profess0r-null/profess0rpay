@@ -12,7 +12,7 @@ if ($global_user_login == true) {
 } else {
     if ($global_user_2fa == true) {
         ?>
-        <script>location.href = "<?php echo $site_url ?>2fa";</script>
+        <script>location.href = "<?php echo rtrim($site_url, '/').'/'.$path_admin ?>/2fa";</script>
         <?php
         exit();
     }

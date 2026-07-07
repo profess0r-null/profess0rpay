@@ -94,78 +94,69 @@
         }
     </style>
 </head>
-<body style="<?= $bgStyle ?> font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center;">
-    <div class="container py-5" style="max-width: 1000px;">
+<body style="<?= $bgStyle ?> font-family: 'Inter', 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow-x: hidden;">
+    <!-- Glassmorphism Background Orbs -->
+    <div style="position: absolute; top: -10%; left: -10%; width: 50vw; height: 50vw; background: radial-gradient(circle, <?php echo pp_hexToRgba(!empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4', 0.15) ?> 0%, rgba(255,255,255,0) 70%); filter: blur(60px); z-index: -1;"></div>
+    <div style="position: absolute; bottom: -10%; right: -10%; width: 40vw; height: 40vw; background: radial-gradient(circle, <?php echo pp_hexToRgba(!empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4', 0.1) ?> 0%, rgba(255,255,255,0) 70%); filter: blur(60px); z-index: -1;"></div>
+
+    <div class="container py-5 px-3" style="max-width: 540px; z-index: 1;">
         <?php if($data['paymentLink']['status'] === 'expired_temp'): ?>
-            <div class="card card-md border-0" style="max-width: 500px; margin: 0 auto; box-shadow: 0 15px 35px rgba(0,0,0,0.06); border-radius: 24px;">
-                <div class="card-body text-center py-5">
-                    <div class="mb-4 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="#d63939" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+            <div class="card border-0 text-center p-5" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); border-radius: 24px; border: 1px solid rgba(255,255,255,0.4);">
+                <div class="mb-4 d-flex justify-content-center">
+                    <div style="width: 80px; height: 80px; background: rgba(220, 53, 69, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#dc3545" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
                     </div>
-                    <h2 class="mb-3 fw-bold">Link Expired</h2>
-                    <p class="text-muted">This payment link has expired.</p>
                 </div>
+                <h2 class="fw-bold text-dark mb-2">Link Expired</h2>
+                <p class="text-muted" style="font-size: 15px;">This payment link is no longer active.</p>
             </div>
         <?php elseif($data['paymentLink']['status'] !== "active"): ?>
-            <div class="card card-md border-0" style="max-width: 500px; margin: 0 auto; box-shadow: 0 15px 35px rgba(0,0,0,0.06); border-radius: 24px;">
-                <div class="card-body text-center py-5">
-                    <div class="mb-4 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="#d63939" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM4.646 4.646a.5.5 0 0 0 0 .708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646a.5.5 0 0 0-.708 0z"/></svg>
+            <div class="card border-0 text-center p-5" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); border-radius: 24px; border: 1px solid rgba(255,255,255,0.4);">
+                <div class="mb-4 d-flex justify-content-center">
+                    <div style="width: 80px; height: 80px; background: rgba(220, 53, 69, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#dc3545" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM4.646 4.646a.5.5 0 0 0 0 .708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646a.5.5 0 0 0-.708 0z"/></svg>
                     </div>
-                    <h2 class="mb-3 fw-bold"><?php echo $data['lang']['product_not_active']?></h2>
-                    <p class="text-muted"><?php echo $data['lang']['product_not_active_text']?></p>
                 </div>
+                <h2 class="fw-bold text-dark mb-2"><?php echo $data['lang']['product_not_active']?></h2>
+                <p class="text-muted" style="font-size: 15px;"><?php echo $data['lang']['product_not_active_text']?></p>
             </div>
         <?php else: ?>
-            <div class="card border-0" style="box-shadow: 0 24px 60px -12px rgba(0,0,0,0.15), 0 4px 24px -4px rgba(0,0,0,0.08); border-radius: 28px; overflow: hidden; background: #fff; transition: all 0.3s ease;">
-                <div class="row g-0">
-                    <!-- Left side: Product Info -->
-                    <div class="col-lg-6 position-relative" style="background: linear-gradient(135deg, <?php echo pp_hexToRgba(!empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4', 0.08); ?> 0%, <?php echo pp_hexToRgba(!empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4', 0.02); ?> 100%);">
-                        <div style="position: absolute; top: -100px; left: -100px; width: 250px; height: 250px; background: <?php echo pp_hexToRgba(!empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4', 0.2); ?>; border-radius: 50%; filter: blur(80px);"></div>
-                        <div class="p-4 p-md-5 d-flex flex-column h-100 position-relative z-1">
-                            <?php if(!empty($data['paymentLink']['product']['image'])): ?>
-                                <div class="mb-4 text-center">
-                                    <img src="<?php echo $data['paymentLink']['product']['image'];?>" alt="Product Image" class="img-fluid" style="max-height: 380px; border-radius: 20px; object-fit: cover; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
-                                </div>
-                            <?php else: ?>
-                                <div class="mb-5 d-flex justify-content-center">
-                                    <div style="width: 120px; height: 120px; background: linear-gradient(135deg, <?php echo pp_hexToRgba(!empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4', 0.15);?>, <?php echo pp_hexToRgba(!empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4', 0.05);?>); border-radius: 30%; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 30px rgba(0,0,0,0.08); transform: rotate(-5deg);">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="<?php echo !empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4';?>" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(5deg);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 17h-11v-14h-2" /><path d="M6 5l14 1l-1 7h-13" /></svg>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                            
-                            <div class="mt-auto text-center pb-2">
-                                <h1 class="fw-bold mb-3" style="color: #111827; font-size: 32px; letter-spacing: -0.5px; line-height: 1.2;"><?php echo $data['paymentLink']['product']['title'];?></h1>
-                                <p class="text-secondary" style="font-size: 16px; line-height: 1.6; font-weight: 500;"><?php echo nl2br(htmlspecialchars($data['paymentLink']['product']['description']));?></p>
+            <div class="card border-0" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.02); border-radius: 24px; overflow: hidden; transition: transform 0.3s ease;">
+                
+                <!-- Product Header Section -->
+                <div class="p-4 p-md-5 text-center position-relative" style="border-bottom: 1px solid rgba(0,0,0,0.05); background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(250,250,250,1) 100%);">
+                    <?php if(!empty($data['paymentLink']['product']['image'])): ?>
+                        <div class="mb-4 text-center">
+                            <img src="<?php echo $data['paymentLink']['product']['image'];?>" alt="Product Image" class="img-fluid" style="height: 120px; width: 120px; border-radius: 20px; object-fit: cover; box-shadow: 0 15px 30px rgba(0,0,0,0.1); border: 2px solid #fff;">
+                        </div>
+                    <?php else: ?>
+                        <div class="mb-4 d-flex justify-content-center">
+                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, <?php echo pp_hexToRgba(!empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4', 0.1);?>, <?php echo pp_hexToRgba(!empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4', 0.02);?>); border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="<?php echo !empty($data['options']['primary_color']) ? $data['options']['primary_color'] : '#0455A4';?>" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 17h-11v-14h-2" /><path d="M6 5l14 1l-1 7h-13" /></svg>
                             </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
+                    
+                    <h1 class="fw-bold mb-2" style="color: #111827; font-size: 26px; letter-spacing: -0.5px;"><?php echo $data['paymentLink']['product']['title'];?></h1>
+                    <p class="text-secondary mb-0" style="font-size: 15px; line-height: 1.6; font-weight: 400;"><?php echo nl2br(htmlspecialchars($data['paymentLink']['product']['description']));?></p>
+                </div>
 
-                    <!-- Right side: Payment Form -->
-                    <div class="col-lg-6">
-                        <div class="p-4 p-md-5">
-                            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-                                <h3 class="m-0 fw-bold" style="color: #2d3748; font-size: 22px;">Payment Details</h3>
-
-                            </div>
-
-                            <form action="" method="POST" id="form" enctype="multipart/form-data">
-                                <?php pp_renderFormFields('payment-link', $data); ?>
-                                <div class="mt-5">
-                                    <button type="submit" id="payButton" class="btn btn-primary btn-pay-now w-100 py-3" style="font-size: 18px; font-weight: 700; border-radius: 12px; letter-spacing: 0.5px;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11" /></svg> 
-                                        <?php echo $data['lang']['pay_now']?>
-                                    </button>
-                                </div>
-                            </form>
-                            
-                            <div class="text-center mt-4 pt-3">
-                                <small class="text-muted d-flex align-items-center justify-content-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3" /><path d="M12 11m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 12l0 2.5" /></svg>
-                                    Secured and encrypted payment
-                                </small>
-                            </div>
+                <!-- Payment Form Section -->
+                <div class="p-4 p-md-5 bg-white">
+                    <form action="" method="POST" id="form" enctype="multipart/form-data">
+                        <?php pp_renderFormFields('payment-link', $data); ?>
+                        <div class="mt-4 pt-2">
+                            <button type="submit" id="payButton" class="btn btn-primary btn-pay-now w-100 py-3 d-flex justify-content-center align-items-center gap-2" style="font-size: 16px; font-weight: 600; border-radius: 12px; letter-spacing: 0.3px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 5m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" /><path d="M3 10l18 0" /><path d="M7 15l.01 0" /><path d="M11 15l2 0" /></svg> 
+                                <?php echo $data['lang']['pay_now']?>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <div class="d-inline-flex align-items-center justify-content-center gap-2 px-3 py-2" style="background: rgba(16, 185, 129, 0.08); border-radius: 30px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3" /><path d="M12 11m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 12l0 2.5" /></svg>
+                            <span style="color: #10b981; font-size: 13px; font-weight: 500;">Secured & encrypted payment</span>
                         </div>
                     </div>
                 </div>

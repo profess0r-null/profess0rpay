@@ -138,22 +138,6 @@
                         }
                         break;
 
-                    case 'login':
-                    case 'forgot':
-                    case '2fa':
-                        if(file_exists(__DIR__ . '/pp-content/pp-admin/'.$route.'.php')){
-                            require __DIR__ . '/pp-content/pp-admin/'.$route.'.php';
-                        }else{
-                            if(file_exists(__DIR__ . '/pp-404.php')){
-                                http_response_code(404);
-                                require __DIR__ . '/pp-404.php';
-                            }else{
-                                http_response_code(403);
-                                exit('Direct access not allowed');
-                            }
-                        }
-                        break;
-
                     case 'ipn':
                         $gateway_id = $segments[1] ?? null;
 
@@ -1770,6 +1754,21 @@
                     case $path_admin:
                         $_GET['page_name'] = $param1;
 
+                        if (in_array($param1, ['login', 'forgot', '2fa'])) {
+                            if(file_exists(__DIR__ . '/pp-content/pp-admin/'.$param1.'.php')){
+                                require __DIR__ . '/pp-content/pp-admin/'.$param1.'.php';
+                            }else{
+                                if(file_exists(__DIR__ . '/pp-404.php')){
+                                    http_response_code(404);
+                                    require __DIR__ . '/pp-404.php';
+                                }else{
+                                    http_response_code(403);
+                                    exit('Direct access not allowed');
+                                }
+                            }
+                            break;
+                        }
+
                         if(file_exists(__DIR__ . '/pp-content/pp-admin/index.php')){
                             require __DIR__ . '/pp-content/pp-admin/index.php';
                         }else{
@@ -2090,15 +2089,19 @@
                         break;
 
                     case 'homepageRedirect':
-                        $response_brand = json_decode(getData($db_prefix.'brands','LIMIT 1', '* FROM', []),true);
-                        if($response_brand['status'] == true && !empty($response_brand['response'])){
-                            $brandRow = $response_brand['response'][0];
-                            echo '<script>location.href="'.$path_payment_link.'/default/'.$brandRow['brand_id'].'";</script>';
+                        if ($path_homepageRedirect != "") {
+                            // Check if http:// or https:// is already present
+                            $url = (strpos($path_homepageRedirect, 'http://') === 0 || strpos($path_homepageRedirect, 'https://') === 0) 
+                                   ? $path_homepageRedirect 
+                                   : 'https://' . $path_homepageRedirect;
+                            echo '<script>location.href="' . $url . '";</script>';
                         } else {
-                            if($path_homepageRedirect == ""){
+                            $response_brand = json_decode(getData($db_prefix.'brands','LIMIT 1', '* FROM', []),true);
+                            if($response_brand['status'] == true && !empty($response_brand['response'])){
+                                $brandRow = $response_brand['response'][0];
+                                echo '<script>location.href="'.$path_payment_link.'/default/'.$brandRow['brand_id'].'";</script>';
+                            } else {
                                 echo '<script>location.href="login";</script>';
-                            }else{
-                                echo '<script>location.href="https://'.$path_homepageRedirect.'";</script>';
                             }
                         }
                         break;

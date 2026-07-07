@@ -125,6 +125,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Status - <?php echo $data['brand']['name'];?></title>
+    <?php echo pp_assets('head'); ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Anek+Bangla:wght@400;500;600;700&display=swap" rel="stylesheet">    
@@ -362,7 +363,7 @@
                                 <span style="white-space: nowrap; flex-shrink: 0;">Inv:</span>
                                 <span style="display: inline-block; min-width: 0; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom;"><?= $invoice ?></span>
                             </span>
-                            <svg onclick="navigator.clipboard.writeText('<?= $invoice ?>'); alert('Copied');" style="cursor: pointer; flex-shrink: 0; color: <?= $gateway_color ?>; transform: translateY(-1px);" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="11px" width="11px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
+                            <svg onclick="pp_copy('<?= $invoice ?>', 'Invoice Copied!', this)" style="cursor: pointer; flex-shrink: 0; color: <?= $gateway_color ?>; transform: translateY(-1px);" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="11px" width="11px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
                         </div>
                     </div>
                 </div>
@@ -497,7 +498,7 @@
                         if (!$is_temp_link) {
                     ?>
                     <a href="<?= $another_payment_url ?>" id="btn-make-another" style="<?= $btn_style ?>"><?= $btn_text ?></a>
-                    <?php if($status == 'completed' && $has_return_url): ?>
+                    <?php if(($status == 'completed' || $status == 'pending') && $has_return_url): ?>
                     <div style="background:linear-gradient(145deg, #f8fafc, #f1f5f9); border:1px solid #e2e8f0; border-radius:10px; padding:16px; text-align:left; margin-top:10px; box-shadow:inset 0 2px 4px rgba(255,255,255,0.5);">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                             <div style="display:flex; align-items:center; gap:8px;">
@@ -505,7 +506,7 @@
                                 <span style="font-size:13px; font-weight:600; color:#475569;">Redirecting to Merchant</span>
                             </div>
                             <div style="font-size:12px; font-weight:700; color:<?= $gateway_color ?>; background:<?= $gateway_color ?>1A; padding:2px 8px; border-radius:12px;">
-                                <span id="auto-redirect-timer">3</span>s
+                                <span id="auto-redirect-timer">8</span>s
                             </div>
                         </div>
                         <div style="width:100%; height:8px; background:#e2e8f0; border-radius:6px; overflow:hidden; position:relative;">
@@ -525,25 +526,18 @@
 
         </div>
 
-        <?php if($status == 'pending') { ?>
+        <?php if(($status == 'completed' || $status == 'pending') && isset($has_return_url) && $has_return_url) { ?>
         <script>
-            // Auto refresh the page every 3 seconds
-            setTimeout(function() {
-                window.location.reload();
-            }, 3000);
-        </script>
-        <?php } elseif($status == 'completed' && isset($has_return_url) && $has_return_url) { ?>
-        <script>
-            let autoTimeLeft = 3;
+            let autoTimeLeft = 8;
             const autoTimerEl = document.getElementById('auto-redirect-timer');
             const autoProgressEl = document.getElementById('auto-redirect-progress');
             
-            setTimeout(() => { if(autoProgressEl) autoProgressEl.style.width = '33.33%'; }, 50);
+            setTimeout(() => { if(autoProgressEl) autoProgressEl.style.width = '12.5%'; }, 50);
             
             const autoInterval = setInterval(() => {
                 autoTimeLeft--;
                 if(autoTimerEl) autoTimerEl.innerText = autoTimeLeft;
-                if(autoProgressEl) autoProgressEl.style.width = ((3 - autoTimeLeft) * 33.33 + 33.33) + '%';
+                if(autoProgressEl) autoProgressEl.style.width = ((8 - autoTimeLeft) * 12.5 + 12.5) + '%';
                 
                 if (autoTimeLeft <= 0) {
                     clearInterval(autoInterval);
@@ -570,5 +564,6 @@
         </div>
     <?php } ?>
 
+    <?php echo pp_assets('footer'); ?>
 </body>
 </html>

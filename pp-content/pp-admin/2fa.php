@@ -14,7 +14,7 @@
             exit();
         }else{
 ?>
-            <script>location.href = "<?php echo $site_url?>login";</script>
+            <script>location.href = "<?php echo rtrim($site_url, '/').'/'.$path_admin ?>/login";</script>
 <?php
             exit();
         }

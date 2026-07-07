@@ -851,3 +851,21 @@ UNLOCK TABLES;
 
 -- Dump completed on 2026-07-02 11:42:44
 
+
+
+-- Auto Updater Tables
+CREATE TABLE IF NOT EXISTS `pp_update_logs` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `version` VARCHAR(50) NOT NULL,
+    `status` VARCHAR(50) NOT NULL,
+    `log` TEXT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `pp_migrations` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `migration` VARCHAR(255) NOT NULL,
+    `executed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `pp_env` (`brand_id`, `option_name`, `value`, `created_date`) VALUES ('both', 'pp_version', '1.0.0', NOW());

@@ -140,7 +140,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     // Insert default BDT currency so general settings can be saved
                     $pdo->exec("INSERT INTO pp_currency (brand_id, code, symbol, rate, created_date, updated_date) VALUES ('9675068878', 'BDT', '৳', 1.00000000, NOW(), NOW())");
-                    $pdo->exec("UPDATE pp_brands SET name='Profess0rPay', favicon='http://localhost/Profess0rPay/assets/images/default_favicon.png', redirect_url='', support_email_address='--', support_phone_number='--', support_website='--', whatsapp_number='--', telegram='--', facebook_messenger='--', facebook_page='--'");
+                    // Dynamically generate the site URL base
+                    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http");
+                    $domain = $_SERVER['HTTP_HOST'];
+                    $dir = dirname($_SERVER['PHP_SELF']);
+                    // Remove '/install' if the installer was accessed directly
+                    if (basename($dir) === 'install') {
+                        $dir = dirname($dir);
+                    }
+                    $dir = rtrim($dir, '/\\');
+                    $dynamic_site_url = $protocol . "://" . $domain . $dir . '/';
+                    
+                    $default_favicon = $dynamic_site_url . 'assets/images/default_favicon.png';
+                    $default_logo = $dynamic_site_url . 'assets/images/logo-light.png';
+
+                    $pdo->exec("UPDATE pp_brands SET name='Profess0rPay', favicon='$default_favicon', logo='$default_logo', redirect_url='', support_email_address='--', support_phone_number='--', support_website='--', whatsapp_number='--', telegram='--', facebook_messenger='--', facebook_page='--'");
+                    $pdo->exec("UPDATE pp_env SET value='$default_favicon' WHERE option_name = 'payment-link-default-logo'");
                     $pdo->exec("UPDATE pp_env SET value='--' WHERE option_name IN ('last-auto-update-check', 'last-update-version-name', 'last-update-version')");
                     
                 } else {

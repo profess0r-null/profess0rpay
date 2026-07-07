@@ -79,12 +79,32 @@ body {
     white-space: nowrap;
 }
 @media (max-width: 575px) {
-    .welcome-banner .btn-modern {
+    .btn-modern {
         font-size: 11px;
         padding: 6px 8px;
     }
     .welcome-banner .gap-2 {
         gap: 0.35rem !important;
+    }
+    .header-actions {
+        overflow: hidden !important;
+        width: 100%;
+    }
+    .header-actions .flex-nowrap {
+        width: 100%;
+        gap: 4px !important;
+        justify-content: space-between;
+    }
+    .header-actions .btn-modern {
+        font-size: 10px;
+        padding: 6px 4px;
+        flex: 1;
+        justify-content: center;
+    }
+    .header-actions .btn-modern svg {
+        width: 14px;
+        height: 14px;
+        margin-right: 2px !important;
     }
 }
 </style>
@@ -95,11 +115,11 @@ body {
         <input type="hidden" name="csrf_token_default" value="<?= $csrf_token ?>">
 
         <!-- Header Actions -->
-        <div class="d-flex justify-content-start justify-content-md-end align-items-center mb-4 overflow-x-auto">
+        <div class="header-actions d-flex justify-content-start justify-content-md-end align-items-center mb-4">
             <div class="d-flex flex-nowrap flex-md-wrap gap-2 pb-1">
-                <a href="<?= $site_url.$path_admin ?>/payment-link" class="btn btn-primary btn-modern" style="background:#4f46e5; border-color:#4f46e5;">+ Payment Link</a>
-                <a href="<?= $site_url.$path_admin ?>/gateways" class="btn btn-light btn-modern text-dark border-0 bg-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z" /><path d="M3 7l9 6l9 -6" /></svg> Gateway</a>
-                <a href="<?= $site_url.$path_admin ?>/customers" class="btn btn-light btn-modern text-dark border-0 bg-white shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-users me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg> Customers</a>
+                <a href="<?= $site_url.$path_admin ?>/payment-link" class="btn btn-primary btn-modern d-flex align-items-center" style="background:#4f46e5; border-color:#4f46e5;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-link me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg> Payment Link</a>
+                <a href="<?= $site_url.$path_admin ?>/gateways" class="btn btn-light btn-modern text-dark border-0 bg-white shadow-sm d-flex align-items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-wallet me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg> Gateway</a>
+                <a href="<?= $site_url.$path_admin ?>/customers" class="btn btn-light btn-modern text-dark border-0 bg-white shadow-sm d-flex align-items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-users me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg> Customers</a>
             </div>
         </div>
 

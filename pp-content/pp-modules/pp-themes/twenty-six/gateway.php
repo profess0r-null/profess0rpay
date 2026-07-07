@@ -281,12 +281,9 @@
             }
         </style>
         <div class="zini-gateway-card">
-            <div class="d-flex align-items-center justify-content-between mb-1" style="padding: 0 5px; margin-bottom: 15px;">
-                <div onclick="location.href='<?php echo pp_checkout_address();?>'" style="cursor: pointer; color: #555; transition: 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#555'">
+            <div class="d-flex align-items-center mb-1" style="padding: 0 5px; margin-bottom: 15px;">
+                <div onclick="window.history.length > 1 ? history.back() : location.replace('<?php echo pp_checkout_address();?>');" style="cursor: pointer; color: #555; transition: 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#555'">
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0" /><path d="M5 12l6 6" /><path d="M5 12l6 -6" /></svg>
-                </div>
-                <div onclick="event.preventDefault(); event.stopPropagation(); showCancelModal(true);" style="cursor: pointer; color: #555; transition: 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#555'">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
                 </div>
             </div>
 
@@ -360,38 +357,6 @@
             supportText:   '<?php echo addslashes($data['lang']['support_contact_text'])?>',
         };
 
-        function copy_value(content){
-            if (!content) {
-                createToast({
-                    title: ppLang.somethingWrong,
-                    description: ppLang.noContent,
-                    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d63939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-exclamation-circle"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>`,
-                    timeout: 1500,
-                    top: 20
-                });
-                return;
-            }
-
-            navigator.clipboard.writeText(content).then(() => {
-                createToast({
-                    title: ppLang.copied,
-                    description: ppLang.copiedDesc,
-                    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5f38f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg>`,
-                    timeout: 1500,
-                    top: 20
-                });
-            }).catch((err) => {
-                createToast({
-                    title: ppLang.copyFailed,
-                    description: ppLang.copyFailedDesc,
-                    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d63939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-exclamation-circle"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>`,
-                    timeout: 1500,
-                    top: 20
-                });
-                console.error('Clipboard error:', err);
-            });
-        }
-
         function failed(title, message){
             createToast({
                 title: title,
@@ -454,42 +419,8 @@
         }
 
         $(document).ready(function() {
-            $('#form').on('submit', function(e) {
-                e.preventDefault(); // prevent default form submission
-
-                var formData = $(this).serialize(); // serialize all form inputs
-
-                document.querySelector("#payButton").innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>';
-
-                $.ajax({
-                    url: '<?php echo pp_site_address(); ?>',
-                    type: 'POST',
-                    dataType: 'json',
-                    data: formData, // send all form data
-                    success: function(data) {
-                        document.querySelector("#payButton").innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-credit-card"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3l0 -8" /><path d="M3 10l18 0" /><path d="M7 15l.01 0" /><path d="M11 15l2 0" /></svg> <?php echo $data['lang']['pay_now']?>';
-
-                        if (data.status == "true") {
-                            location.href = data.redirect;
-                        } else {
-                            createToast({
-                                title: data.title,
-                                description: data.message,
-                                svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d63939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-exclamation-circle"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>`,
-                                timeout: 1500
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        createToast({
-                            title: ppLang.somethingWrong,
-                            description: ppLang.supportText,
-                            svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d63939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-exclamation-circle"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>`,
-                            timeout: 1500
-                        });
-                    }
-                });
-            });
+            // Form submission is now handled dynamically by pp-functions.php 
+            // to support the new payment workflow and direct redirect.
         });
     </script>
     <!-- Cancel Invoice Modal -->
@@ -536,7 +467,11 @@
         }
         function processCancel() {
             if (cancelIsInstant) {
-                location.href = '<?php echo pp_checkout_address();?>';
+                if (window.history.length > 1) {
+                    history.back();
+                } else {
+                    location.replace('<?php echo pp_checkout_address();?>');
+                }
                 return;
             }
             document.getElementById('zini-cancel-step1').style.display = 'none';
