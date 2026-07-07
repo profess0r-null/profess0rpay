@@ -77,12 +77,12 @@ try {
     $updater->extractAndSwap($tmpZip);
 
     // Update version in DB
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM `{$db_prefix}settings` WHERE `setting_key` = 'pp_version'");
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM `{$db_prefix}env` WHERE `option_name` = 'pp_version'");
     $stmt->execute();
     if($stmt->fetchColumn() > 0) {
-        $pdo->prepare("UPDATE `{$db_prefix}settings` SET `setting_value` = ? WHERE `setting_key` = 'pp_version'")->execute([$targetVersion]);
+        $pdo->prepare("UPDATE `{$db_prefix}env` SET `value` = ? WHERE `option_name` = 'pp_version'")->execute([$targetVersion]);
     } else {
-        $pdo->prepare("INSERT INTO `{$db_prefix}settings` (`brand_id`, `setting_key`, `setting_value`, `created_date`) VALUES ('both', 'pp_version', ?, ?)")->execute([$targetVersion, date('Y-m-d H:i:s')]);
+        $pdo->prepare("INSERT INTO `{$db_prefix}env` (`option_name`, `value`) VALUES ('pp_version', ?)")->execute([$targetVersion]);
     }
     
     // Log success

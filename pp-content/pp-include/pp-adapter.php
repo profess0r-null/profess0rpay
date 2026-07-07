@@ -223,9 +223,21 @@
 
     $pp_adapter_loaded = true;
 
+    $dynVersion = '1.2.0';
+    try {
+        if (function_exists('connectDatabase')) {
+            $pdo = connectDatabase();
+            $stmt = $pdo->prepare("SELECT `value` FROM `{$db_prefix}env` WHERE `option_name` = 'pp_version'");
+            $stmt->execute();
+            if($val = $stmt->fetchColumn()) {
+                $dynVersion = $val;
+            }
+        }
+    } catch(\Throwable $e) {}
+
     $professorpay_current_version = [
-        'version_name' => 'v3.0.0-beta',
-        'version_code' => '3.0.0',
+        'version_name' => 'v' . $dynVersion,
+        'version_code' => $dynVersion,
         'version_hash' => '6b6f7c62e34e3680398387720dbd44a036d1a574860d5f90a3bd5d9b6280bea1
 c9515853f1fbf61175dd3dbce6eb011e4cf29fc43949ed4b562f6421b88c8773
 c0dc07a71b29a9da279310f2247affb16089334cc3da60fa0b4b4f06f78594cb
@@ -236,7 +248,7 @@ c0dc07a71b29a9da279310f2247affb16089334cc3da60fa0b4b4f06f78594cb
 46cc094590e12b359b3f8c429b75c7771164d64b4ee77c3783b304a6757f1dcb
 aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
 09a03d6d70021d1c0dd64cefd6e400b18d0e43d00d821b8f52e2e9370908779e',
-        'version_channel' => 'beta'
+        'version_channel' => 'stable'
     ];
 
     $directory = ltrim(rtrim(dirname($_SERVER['PHP_SELF']), '/\\') . '/', '/');
