@@ -57,20 +57,29 @@
             $c_support = is_string($data['brand']['support']) ? json_decode($data['brand']['support'],true) : $data['brand']['support'];
         $c_wa = !empty($c_support['whatsapp']) ? preg_replace('/[^0-9]/','', $c_support['whatsapp']) : '';
 
-        // Case 1: return_url set → redirect to merchant
-        // Use raw_return_url — not the masked 'return_url' which is '--' for initiated transactions
-        $return_url = $data['transaction']['raw_return_url'] ?? $data['transaction']['return_url'] ?? '';
-        $has_return = (!empty($return_url) && $return_url !== '--');
-        
-        // Ensure no whitespace is breaking this
-        $return_url = trim($return_url);
-        $has_return = (!empty($return_url) && $return_url !== '--');
+        // Determine redirect destination
+        $return_url = trim($data['transaction']['raw_return_url'] ?? $data['transaction']['return_url'] ?? '');
+        $has_return  = (!empty($return_url) && $return_url !== '--');
 
-        if($has_return){
+        if ($has_return) {
+            // eCommerce: redirect back to merchant with cancel status
             $redirect_to = addQueryParams($return_url, [
                 'pp_status'       => 'canceled',
                 'transaction_ref' => $c_invoice,
             ]);
+        } else {
+            // Default/custom payment link: use brand's redirect_url setting
+            $brand_redir = trim($data['brand']['redirect_url'] ?? '');
+            if (!empty($brand_redir) && $brand_redir !== '--') {
+                $redirect_to = $brand_redir;
+                $has_return  = true;
+            } else {
+                // If NO return_url and NO brand redirect_url, fallback to the brand's payment link page to generate a new invoice
+                $brand_slug = $data['brand']['slug'] ?? '';
+                $redirect_to = pp_site_address() . $brand_slug;
+            }
+            // Always set true so the progress bar and redirect timer always work
+            $has_return = true;
         }
 ?>
 <!DOCTYPE html>
@@ -78,165 +87,166 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Payment Canceled - <?php echo $c_shopName; ?></title>
+    <title>Invoice Canceled – <?php echo htmlspecialchars($c_shopName); ?></title>
     <link rel="shortcut icon" href="<?php echo $c_favicon; ?>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Anek+Bangla:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: #f4f7fe; padding: 20px 12px 32px; min-height: 100vh; }
-        .wrapper { width: 100%; max-width: 420px; margin: 0 auto; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 16px; overflow: hidden; }
-        .hdr { background: #fff; padding: 14px 20px 12px; text-align: center; border-bottom: 1px solid #f3f4f6; }
-        .hdr img { height: 64px; object-fit: contain; }
-        .info-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px; }
-        .shop-block { display: flex; align-items: center; gap: 12px; }
-        .shop-icon { width: 44px; height: 44px; border-radius: 50%; background: #fce4ec; color: #e2136e; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .shop-name { font-size: 18px; font-weight: 500; color: #1f2937; font-family: 'Anek Bangla','Inter',sans-serif; }
-        .shop-inv { font-size: 10px; color: #9ca3af; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
-        .inv-ref { display: inline-block; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .total { font-size: 24px; font-weight: 500; color: #2f2f2f; font-family: 'Anek Bangla',sans-serif; flex-shrink: 0; margin-left: 16px; }
-        .sup-row { display: flex; justify-content: center; gap: 10px; margin: 0 0 16px; }
-        .sup-btn { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: #fff; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-        .status-card { background: #fff; border-radius: 12px; margin: 0 20px 20px; padding: 30px 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .s-icon { width: 60px; height: 60px; border-radius: 50%; background: #fee2e2; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
-        .s-title { font-size: 22px; font-weight: 700; color: #b91c1c; margin-bottom: 10px; }
-        .s-desc { font-size: 14px; color: #4b5563; line-height: 1.5; margin-bottom: 25px; }
-        .detail-box { background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: left; }
-        .detail-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .detail-row:last-child { margin-bottom: 0; }
-        .d-label { font-size: 13px; color: #6b7280; font-weight: 500; }
-        .d-val { font-size: 13px; color: #1f2937; font-weight: 600; }
-        .badge-canceled { font-size: 13px; font-weight: 600; background: #fee2e2; color: #ef4444; padding: 2px 10px; border-radius: 20px; }
-        .btn-merchant { display: block; width: 100%; text-align: center; padding: 12px; background: <?php echo $c_gateway_color; ?>; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; margin-top: 20px; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+        }
+        .cancel-card {
+            background: #ffffff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            padding: 40px 30px;
+            text-align: center;
+            border: 1px solid #f3f4f6;
+        }
+        .cancel-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.05);
+            animation: gentle-zoom 2.5s ease-in-out infinite;
+        }
+        
+        @keyframes gentle-zoom {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        .cancel-icon {
+            width: 52px;
+            height: 52px;
+            background: #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+        }
+        .cancel-icon svg {
+            width: 26px;
+            height: 26px;
+            stroke: #ffffff;
+            stroke-width: 3;
+        }
+        .cancel-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+        .cancel-desc {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+        
+        /* Redirect section */
+        .redirect-section {
+            margin-top: 10px;
+        }
+        .redirect-text {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .progress-track {
+            width: 100%;
+            height: 10px; /* Thicker progress bar */
+            background: #f3f4f6;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 100%;
+            background: #ef4444;
+            border-radius: 5px;
+            transition: width 1s linear;
+        }
     </style>
 </head>
 <body>
-<div class="wrapper">
-    <div class="hdr">
-        <img src="<?php echo $c_logo; ?>" alt="<?php echo $c_shopName; ?>">
-    </div>
-    <div class="info-bar">
-        <div class="shop-block">
-            <div class="shop-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.1 9.2a2 2 0 0 0 1.9 1.4h9.2a2 2 0 0 0 1.9-1.4L22 6H7"></path><path d="M9 20a1 1 0 1 0 0 -2 1 1 0 0 0 0 2z"></path><path d="M20 20a1 1 0 1 0 0 -2 1 1 0 0 0 0 2z"></path></svg>
-            </div>
-            <div>
-                <div class="shop-name"><?php echo $c_shopName; ?></div>
-                <div class="shop-inv">
-                    <span>Inv: </span><span class="inv-ref"><?php echo $c_invoice; ?></span>
-                </div>
+    <div class="cancel-card">
+        <div class="cancel-icon-wrapper">
+            <div class="cancel-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M18 6l-12 12"/>
+                    <path d="M6 6l12 12"/>
+                </svg>
             </div>
         </div>
-        <div class="total"><?php echo $c_amountStr; ?></div>
-    </div>
-
-    <?php if($c_wa || (!empty($c_support['telegram']) && $c_support['telegram'] != '--') || (!empty($c_support['email']) && $c_support['email'] != '--')): ?>
-    <div class="sup-row">
-        <div class="sup-btn" style="color:#4285f4; border:2px solid #bfdbfe;" onclick="document.getElementById('cancel-sup-modal').style.display='flex'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
-        </div>
-        <?php if($c_wa): ?>
-        <div class="sup-btn" style="color:#25d366; border:2px solid #bbf7d0;" onclick="window.open('https://wa.me/<?php echo $c_wa; ?>','_blank')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"/><path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1"/></svg>
-        </div>
-        <?php endif; ?>
-    </div>
-    <!-- Support Modal -->
-    <div id="cancel-sup-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.style.display='none'">
-        <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px;position:relative;">
-            <button onclick="document.getElementById('cancel-sup-modal').style.display='none'" style="position:absolute;top:16px;right:16px;border:none;background:none;font-size:20px;cursor:pointer;color:#888;">✕</button>
-            <h5 style="font-weight:700;margin:0 0 6px;font-size:16px;">Contact Support</h5>
-            <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">Need help? Contact <?php echo $c_shopName; ?> below:</p>
-            <?php if(!empty($c_support['whatsapp']) && $c_support['whatsapp'] != '--'): ?>
-            <a href="https://wa.me/<?php echo $c_support['whatsapp']; ?>?text=Hello, I need help (Invoice: <?php echo $c_invoice; ?>)" target="_blank" style="display:flex;align-items:center;gap:14px;background:#e8f5e9;color:#2e7d32;border-radius:8px;padding:14px;margin-bottom:10px;text-decoration:none;">
-                <div style="background:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"/><path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1"/></svg></div>
-                <div><p style="margin:0;font-weight:600;font-size:14px;">WhatsApp</p><span style="font-size:12px;opacity:0.8;">+<?php echo $c_support['whatsapp']; ?></span></div>
-            </a>
-            <?php endif; ?>
-            <?php if(!empty($c_support['email']) && $c_support['email'] != '--'): ?>
-            <a href="mailto:<?php echo $c_support['email']; ?>?subject=Payment Help - <?php echo $c_invoice; ?>" style="display:flex;align-items:center;gap:14px;background:#fff3e0;color:#e65100;border-radius:8px;padding:14px;text-decoration:none;">
-                <div style="background:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"/><path d="M3 7l9 6l9 -6"/></svg></div>
-                <div><p style="margin:0;font-weight:600;font-size:14px;">Email</p><span style="font-size:12px;opacity:0.8;"><?php echo $c_support['email']; ?></span></div>
-            </a>
-            <?php endif; ?>
-            <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:14px;margin-bottom:0;">Invoice ID: <strong><?php echo $c_invoice; ?></strong></p>
-        </div>
-    </div>
-    <?php endif; ?>
-
-    <div class="status-card">
-        <div class="s-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
-        </div>
-        <h2 class="s-title">Payment Canceled</h2>
-        <p class="s-desc">Your payment request has been canceled.</p>
-
-        <div class="detail-box">
-            <?php if($c_gateway_slug): ?>
-            <div class="detail-row">
-                <span class="d-label">Provider</span>
-                <span class="d-val" style="text-transform:capitalize;"><?php echo str_replace(['-personal','-merchant','-agent'],'', $c_gateway_slug); ?></span>
-            </div>
-            <?php endif; ?>
-            <div class="detail-row">
-                <span class="d-label">Amount</span>
-                <span class="d-val"><?php echo $c_amount; ?> <?php echo $c_currency; ?></span>
-            </div>
-            <div class="detail-row">
-                <span class="d-label">Status</span>
-                <span class="badge-canceled">Canceled</span>
-            </div>
-        </div>
+        
+        <h2 class="cancel-title">Invoice Canceled</h2>
+        <p class="cancel-desc">Your request to cancel the invoice has been processed successfully.</p>
 
         <?php if($has_return): ?>
-        <a href="<?php echo $redirect_to; ?>" class="btn-merchant" style="margin-bottom:15px;">Return to Merchant</a>
-        <div style="background:linear-gradient(145deg, #f8fafc, #f1f5f9); border:1px solid #e2e8f0; border-radius:10px; padding:16px; text-align:left; margin-top:16px; box-shadow:inset 0 2px 4px rgba(255,255,255,0.5);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <svg style="animation: timer-spin 3s linear infinite; color: #64748b;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
-                    <span style="font-size:13px; font-weight:600; color:#475569;">Redirecting to Merchant</span>
-                </div>
-                <div style="font-size:12px; font-weight:700; color:<?php echo $c_gateway_color; ?>; background:<?php echo $c_gateway_color; ?>1A; padding:2px 8px; border-radius:12px;">
-                    <span id="auto-redirect-timer">10</span>s
-                </div>
-            </div>
-            <div style="width:100%; height:8px; background:#e2e8f0; border-radius:6px; overflow:hidden; position:relative;">
-                <div id="auto-redirect-progress" style="width:0%; height:100%; background:linear-gradient(90deg, <?php echo $c_gateway_color; ?>CC, <?php echo $c_gateway_color; ?>); transition:width 1s linear; border-radius:6px; position:relative; overflow:hidden;">
-                    <div style="position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: timer-shimmer 2s infinite;"></div>
-                </div>
+        <div class="redirect-section">
+            <div class="redirect-text">Redirecting in <span id="r-sec">5</span> seconds...</div>
+            <div class="progress-track">
+                <div class="progress-fill" id="r-fill"></div>
             </div>
         </div>
-        <style>
-            @keyframes timer-spin { 100% { transform: rotate(360deg); } }
-            @keyframes timer-shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-        </style>
         <?php endif; ?>
     </div>
-</div>
-<?php if($has_return): ?>
-<script>
-    let autoTimeLeft = 10;
-    const autoTimerEl = document.getElementById('auto-redirect-timer');
-    const autoProgressEl = document.getElementById('auto-redirect-progress');
-    
-    setTimeout(() => { autoProgressEl.style.width = '10%'; }, 50);
-    
-    const autoInterval = setInterval(() => {
-        autoTimeLeft--;
-        if(autoTimerEl) autoTimerEl.innerText = autoTimeLeft;
-        if(autoProgressEl) autoProgressEl.style.width = ((10 - autoTimeLeft) * 10 + 10) + '%';
-        
-        if (autoTimeLeft <= 0) {
-            clearInterval(autoInterval);
-            location.href = '<?php echo $redirect_to; ?>';
+
+    <?php if($has_return): ?>
+    <script>
+        var zcUrl   = <?php echo json_encode($redirect_to); ?>;
+        var zcLeft  = 5;
+        var zcSecEl = document.getElementById('r-sec');
+        var zcFill  = document.getElementById('r-fill');
+        var zcTimer;
+
+        function zcRedirect() { 
+            clearInterval(zcTimer); 
+            window.location.replace(zcUrl); 
         }
-    }, 1000);
-</script>
-<?php endif; ?>
+
+        // Start from 100% and shrink down to 0%
+        // Initially the width is 100% in CSS.
+        // We calculate width dynamically: at 5s = 100%, 4s = 80%, etc.
+        
+        zcTimer = setInterval(function() {
+            zcLeft--;
+            if (zcSecEl) zcSecEl.textContent = zcLeft;
+            if (zcFill)  zcFill.style.width  = (zcLeft * 20) + '%';
+            
+            if (zcLeft <= 0) { 
+                zcRedirect(); 
+            }
+        }, 1000);
+    </script>
+    <?php endif; ?>
 </body>
 </html>
 <?php
         exit();
     }
+
 
 
 
@@ -287,7 +297,7 @@
             
             $grouped = [];
             foreach ($gateways as $row) {
-                $logo = (isset($row['slug']) && $row['slug'] == 'bkash-personal') ? rtrim($site_addr, '/') . '/assets/images/bkash.png' : $row['logo'];
+                $logo = (isset($row['slug']) && strpos(strtolower($row['slug']), 'bkash') !== false) ? rtrim($site_addr, '/') . '/assets/images/bkash.png?v='.(file_exists(__DIR__.'/../../../../assets/images/bkash.png') ? filemtime(__DIR__.'/../../../../assets/images/bkash.png') : time()) : $row['logo'];
                 $grouped[$logo][] = $row;
             }
             
@@ -315,7 +325,7 @@
             
             $grouped = [];
             foreach ($gateways as $row) {
-                $logo = (isset($row['slug']) && $row['slug'] == 'bkash-personal') ? rtrim($site_addr, '/') . '/assets/images/bkash.png' : $row['logo'];
+                $logo = (isset($row['slug']) && strpos(strtolower($row['slug']), 'bkash') !== false) ? rtrim($site_addr, '/') . '/assets/images/bkash.png?v='.(file_exists(__DIR__.'/../../../../assets/images/bkash.png') ? filemtime(__DIR__.'/../../../../assets/images/bkash.png') : time()) : $row['logo'];
                 $grouped[$logo][] = $row;
             }
             

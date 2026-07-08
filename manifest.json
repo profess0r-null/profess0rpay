@@ -2,7 +2,7 @@
     "name": "Profess0rPay Admin",
     "short_name": "Admin Panel",
     "description": "Profess0rPay Admin Dashboard",
-    "start_url": "./",
+    "start_url": "/admin",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#4361ee",

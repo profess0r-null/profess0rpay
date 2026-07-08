@@ -291,7 +291,7 @@
             <center>
                 <?php 
                 $g_logo = $gateway_info['gateway']['logo'];
-                if (isset($gateway_info['gateway']['slug']) && $gateway_info['gateway']['slug'] == 'bkash-personal') {
+                if (isset($gateway_info['gateway']['slug']) && strpos(strtolower($gateway_info['gateway']['slug']), 'bkash') !== false) {
                     $g_logo = pp_site_address() . 'assets/images/bkash.png';
                 }
                 ?>

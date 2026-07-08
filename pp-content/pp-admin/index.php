@@ -29,7 +29,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Profess0rPay</title>
     <link rel="shortcut icon" href="<?= $professorpay_favicon ?? '' ?>">
-    <link rel="manifest" href="<?php echo $site_url ?>manifest.json">
+    <?php
+        $manifestData = [
+            "name" => "Profess0rPay Admin",
+            "short_name" => "Admin Panel",
+            "description" => "Profess0rPay Admin Dashboard",
+            "start_url" => rtrim($site_url, '/').'/'.$path_admin,
+            "display" => "standalone",
+            "background_color" => "#ffffff",
+            "theme_color" => "#4361ee",
+            "icons" => [
+                [
+                    "src" => rtrim($site_url, '/') . "/assets/images/default_favicon.png",
+                    "sizes" => "192x192",
+                    "type" => "image/png",
+                    "purpose" => "any maskable"
+                ],
+                [
+                    "src" => rtrim($site_url, '/') . "/assets/images/default_favicon.png",
+                    "sizes" => "512x512",
+                    "type" => "image/png",
+                    "purpose" => "any maskable"
+                ]
+            ]
+        ];
+        $manifestBase64 = base64_encode(json_encode($manifestData));
+    ?>
+    <link rel="manifest" href="data:application/manifest+json;base64,<?php echo $manifestBase64; ?>">
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

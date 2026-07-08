@@ -232,6 +232,12 @@
             if($val = $stmt->fetchColumn()) {
                 $dynVersion = $val;
             }
+            
+            // Auto-migrate: Add sort_order column if it doesn't exist
+            $checkColStmt = $pdo->query("SHOW COLUMNS FROM `{$db_prefix}gateways` LIKE 'sort_order'");
+            if ($checkColStmt && $checkColStmt->rowCount() == 0) {
+                $pdo->exec("ALTER TABLE `{$db_prefix}gateways` ADD COLUMN `sort_order` INT(11) DEFAULT 0 AFTER `status`");
+            }
         }
     } catch(\Throwable $e) {}
 
@@ -5504,6 +5510,11 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                     $facebook_page = escape_string($_POST['facebook_page'] ?? '');
                     $autoExchange = escape_string($_POST['autoExchange'] ?? '');
 
+                    $dynamicNumericRoute = escape_string($_POST['dynamicNumericRoute'] ?? '');
+                    if ($dynamicNumericRoute !== '') {
+                        set_env('dynamicNumericRoute', $dynamicNumericRoute, $global_response_brand['response'][0]['brand_id']);
+                    }
+
                     if($autoExchange == ""){
                         echo json_encode(['status' => "false", 'title' => 'Incomplete Information', 'message' => 'Please fill in all required fields before proceeding.', 'csrf_token' => $new_csrf_token]);
                     }else{
@@ -8027,6 +8038,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
 
                         $status = escape_string($_POST['status'] ?? '');
                         $currency = escape_string($_POST['currency'] ?? '');
+                        $sort_order = escape_string($_POST['sort_order'] ?? '0');
 
                         if($gateway_id == "" || $display_name == "" || $min_amount == "" || $max_amount == "" || $fixed_charge == "" || $percentage_charge == "" || $fixed_discount == "" || $percentage_discount == "" || $primary_color == "" || $text_color == "" || $btn_color == "" || $btn_text_color == ""){
                             echo json_encode(['status' => "false", 'title' => 'Incomplete Information', 'message' => 'Please fill in all required fields before proceeding.', 'csrf_token' => $new_csrf_token]);
@@ -8042,8 +8054,8 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                     $logo = $response['response'][0]['logo'];
                                 }
 
-                                $columns = ['display', 'logo', 'currency', 'min_allow', 'max_allow', 'fixed_discount', 'percentage_discount', 'fixed_charge', 'percentage_charge', 'primary_color', 'text_color', 'btn_color', 'btn_text_color', 'status', 'updated_date'];
-                                $values = [$display_name, $logo, $currency, money_sanitize($min_amount), money_sanitize($max_amount), money_sanitize($fixed_discount), money_sanitize($percentage_discount), money_sanitize($fixed_charge), money_sanitize($percentage_charge), $primary_color, $text_color, $btn_color, $btn_text_color, $status, getCurrentDatetime('Y-m-d H:i:s')];
+                                $columns = ['display', 'logo', 'currency', 'min_allow', 'max_allow', 'fixed_discount', 'percentage_discount', 'fixed_charge', 'percentage_charge', 'primary_color', 'text_color', 'btn_color', 'btn_text_color', 'status', 'sort_order', 'updated_date'];
+                                $values = [$display_name, $logo, $currency, money_sanitize($min_amount), money_sanitize($max_amount), money_sanitize($fixed_discount), money_sanitize($percentage_discount), money_sanitize($fixed_charge), money_sanitize($percentage_charge), $primary_color, $text_color, $btn_color, $btn_text_color, $status, $sort_order, getCurrentDatetime('Y-m-d H:i:s')];
                                 $condition = "gateway_id = '".$gateway_id."'"; 
                                 
                                 updateData($db_prefix.'gateways', $columns, $values, $condition);
@@ -8059,7 +8071,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                         'min_amount','max_amount',
                                         'fixed_charge','percentage_charge',
                                         'fixed_discount','percentage_discount',
-                                        'currency','status',
+                                        'currency','status','sort_order',
                                         'gateway_logo',
                                         'primary_color','text_color','btn_color','btn_text_color'
                                     ])) {

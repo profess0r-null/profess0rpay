@@ -306,6 +306,16 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Sort Order</label>
+                                    <div class="form-control-wrap">
+                                        <input type="number" class="form-control" name="sort_order" value="<?php echo $response_gateway['response'][0]['sort_order'] ?? 0; ?>" placeholder="e.g. 0"> 
+                                    </div>
+                                    <small class="form-text text-muted">Lower numbers appear first.</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

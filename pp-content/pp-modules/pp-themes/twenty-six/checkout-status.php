@@ -23,6 +23,16 @@
 
     $status = strtolower($data['transaction']['status'] ?? 'pending');
 
+    // If the transaction is canceled, always show the clean cancel UI from checkout.php
+    // This handles the case where the user refreshes the cancel page.
+    if ($status === 'canceled' || $status === 'rejected') {
+        if (!isset($_GET['cancel'])) {
+            $_GET['cancel'] = '1';
+        }
+        include(__DIR__.'/checkout.php');
+        exit();
+    }
+
     // SIMPLE: Only use return_url (merchant's site) for redirect after completion
     // For canceled: already handled by checkout.php — if user lands here somehow, just show status
     $return_url = $data['transaction']['return_url'] ?? '';

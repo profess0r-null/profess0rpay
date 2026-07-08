@@ -2352,7 +2352,7 @@
 
         $params = [ ':tab' => $tab, ':brand_id' => $data['brand']['id'] ];
 
-        $response_gateway = json_decode(getData($db_prefix.'gateways','WHERE tab = :tab AND brand_id = :brand_id AND status = "active"','* FROM',$params),true);
+        $response_gateway = json_decode(getData($db_prefix.'gateways','WHERE tab = :tab AND brand_id = :brand_id AND status = "active" ORDER BY sort_order ASC, id ASC','* FROM',$params),true);
 
         $gatewayList = [];
 
@@ -2444,6 +2444,7 @@
                         'text_color'           => $row['text_color'],
                         'btn_color'            => $row['btn_color'],
                         'btn_text_color'       => $row['btn_text_color'],
+                        'sort_order'           => $row['sort_order'] ?? 0,
                     ];
                 }
             }
@@ -2452,7 +2453,9 @@
                 $priority = [
                     'bkash' => 1,
                     'nagad' => 2,
-                    'rocket' => 3
+                    'rocket' => 3,
+                    'upay' => 4,
+                    'cellfin' => 5
                 ];
 
                 $getPriority = function($slug) use ($priority) {
@@ -2468,7 +2471,10 @@
                 $pB = $getPriority($b['slug']);
 
                 if ($pA == $pB) {
-                    return strcmp($a['name'], $b['name']);
+                    if ($a['sort_order'] == $b['sort_order']) {
+                        return $a['id'] ?? 0 <=> $b['id'] ?? 0;
+                    }
+                    return $a['sort_order'] <=> $b['sort_order'];
                 }
                 return $pA - $pB;
             });
@@ -2988,48 +2994,72 @@
                 $step2appEn = 'Payment';
                 $step2action = 'সেন্ড মানি';
                 $step3text = 'একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট সেন্ড মানি করুন।';
+                $appType = 'personal';
+                $numberTextBn = 'পার্সোনাল';
+
+                if (strpos(strtolower($slug), 'merchant') !== false) {
+                    $step2action = 'পেমেন্ট';
+                    $step3text = 'একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট পেমেন্ট করুন।';
+                    $appType = 'merchant';
+                    $numberTextBn = 'মার্চেন্ট';
+                } elseif (strpos(strtolower($slug), 'agent') !== false) {
+                    $step2action = 'ক্যাশ আউট';
+                    $step3text = 'একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট ক্যাশ আউট করুন।';
+                    $appType = 'agent';
+                    $numberTextBn = 'এজেন্ট';
+                }
+
+                $appTypeDisplay = ucfirst($appType);
+                if (strpos(strtolower($slug), 'nagad') !== false && $appType == 'agent') {
+                    $appTypeDisplay = 'Uddokta';
+                    $numberTextBn = 'উদ্যোক্তা';
+                }
+                
+                $step3text = $numberTextBn . ' নম্বর কপি করুন এবং কাঙ্খিত এমাউন্ট ' . $step2action . ' করুন।';
+
                 $nagadBrandedHeader = false;
                 $upayBrandedHeader = false;
                 
-                if ($slug == 'bkash-personal') {
+                if (strpos(strtolower($slug), 'bkash') !== false) {
                     $primaryColor = '#e2136e';
-                    $step2img = 'assets/images/bkash_personal.jpg';
+                    $step2img = 'assets/images/bkash_' . $appType . '.jpg';
                     $step2app = 'বিকাশ';
                     $step2appEn = 'bKash';
                     $cartBg = '#f1f5f9';
                     $cartColor = '#64748b';
-                    $g_logo = rtrim(pp_site_address(), '/') . '/assets/images/bkash.png';
-                } elseif ($slug == 'nagad-personal') {
+                    $g_logo = rtrim(pp_site_address(), '/') . '/assets/images/bkash.png?v='.(file_exists(__DIR__.'/../../../assets/images/bkash.png') ? filemtime(__DIR__.'/../../../assets/images/bkash.png') : time());
+                } elseif (strpos(strtolower($slug), 'nagad') !== false) {
                     $primaryColor = '#ed1c24';
-                    $step2img = 'assets/images/nagad_personal.jpg';
+                    $step2img = 'assets/images/nagad_' . $appType . '.jpg';
                     $step2app = 'নগদ';
                     $step2appEn = 'Nagad';
                     $cartBg = '#fff0f0';
                     $cartColor = '#ed1c24';
-                    $g_logo = rtrim(pp_site_address(), '/') . '/assets/images/nagad.png';
                     $nagadBrandedHeader = true;
-                } elseif ($slug == 'rocket-personal') {
+                } elseif (strpos(strtolower($slug), 'rocket') !== false) {
                     $primaryColor = '#7b2382';
-                    $step2img = 'assets/images/rocket_personal.jpg';
+                    $step2img = 'assets/images/rocket_' . $appType . '.jpg';
                     $step2app = 'রকেট';
                     $step2appEn = 'Rocket';
                     $cartBg = '#f4e7f7';
                     $cartColor = '#7b2382';
-                } elseif ($slug == 'upay-personal' || strpos(strtolower($slug), 'upay') !== false) {
+                } elseif (strpos(strtolower($slug), 'upay') !== false) {
                     $primaryColor = '#FFD302';
-                    $step2img = 'assets/images/upay_personal.jpg';
+                    $step2img = 'assets/images/upay_' . $appType . '.jpg';
                     $step2app = 'উপায়';
                     $step2appEn = 'Upay';
                     $cartBg = '#fdfbd7';
                     $cartColor = '#FFD302';
                     $upayBrandedHeader = true;
-                } elseif ($slug == 'cellfin-personal' || strpos(strtolower($slug), 'cellfin') !== false) {
+                } elseif (strpos(strtolower($slug), 'cellfin') !== false) {
                     $primaryColor = '#00803d';
-                    $step2img = 'assets/images/cellfin_personal.jpg';
+                    $step2img = 'assets/images/cellfin_' . $appType . '.jpg';
                     $step2app = 'সেলফিন';
                     $step2appEn = 'Cellfin';
-                    $step2action = 'ফান্ড ট্রান্সফার';
-                    $step3text = 'একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট ফান্ড ট্রান্সফার করুন।';
+                    if ($appType == 'personal') {
+                        $step2action = 'ফান্ড ট্রান্সফার';
+                        $step3text = 'একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট ফান্ড ট্রান্সফার করুন।';
+                    }
                     $cartBg = '#e6f3eb';
                     $cartColor = '#00803d';
                 }
@@ -3038,7 +3068,7 @@
                 $charge = money_round($data['transaction']['processing_fee'], 2);
                 $invoice = $data['transaction']['ref'];
                 $personalNumber = $data['options']['mobile_number'] ?? '';
-                $mobileLength = ($slug == 'rocket-personal') ? 12 : 11;
+                $mobileLength = (strpos(strtolower($slug), 'rocket') !== false) ? 12 : 11;
                 
                 $verification_method = $options['verification_method'] ?? 'trxid';
 
@@ -3137,7 +3167,7 @@
                 /* ===== WHITE FOOTER — always visible, never scrolls ===== */
                 .zini-white-footer {
                     background: #fff;
-                    padding: 14px 20px 16px;
+                    padding: 12px 20px 12px;
                     flex-shrink: 0;
                     border-top: 1px solid #f1f5f9;
                 }
@@ -3164,7 +3194,7 @@
                 .zini-shop-name { font-size: 15px; font-weight: 600; color: #1e293b; line-height: 1.2; }
                 .zini-shop-inv { font-size: 11px; color: #64748b; display: flex; align-items: center; gap: 4px; margin-top: 3px; }
                 .zini-shop-inv span { display: inline-block; vertical-align: middle; word-break: break-all; max-width: 250px; }
-                .zini-total-amount { font-size: 22px; font-weight: 600; color: #0f172a; white-space: nowrap; }
+                .zini-total-amount { font-size: 26px; font-weight: 600; color: #0f172a; white-space: nowrap; }
 
                 /* Desktop Sizes for Logo & Merchant Section */
                 @media (min-width: 521px) {
@@ -3174,7 +3204,7 @@
                     .zini-shop-icon svg { width: 24px; height: 24px; }
                     .zini-shop-name { font-size: 18px; }
                     .zini-shop-inv { font-size: 13px; margin-top: 5px; }
-                    .zini-total-amount { font-size: 28px; }
+                    .zini-total-amount { font-size: 32px; }
                 }
 
                 /* ===== NUMBER BOX ===== */
@@ -3649,25 +3679,25 @@
                     <div id="zini-step1">
                         <div class="zini-pink-body zini-step1-body">
                             '.($upayBrandedHeader ? '
-                            <div class="zini-step1-title" style="color: #33475F !important; font-weight: 800 !important; font-size: 15px !important; margin-bottom: 12px;">Enter Your upay Account Number</div>
+                            <div class="zini-step1-title" style="color: #33475F !important; font-weight: 800 !important; font-size: 15px !important; margin-bottom: 12px;">Enter Your upay Personal Number</div>
                             ' : '
-                            <div class="zini-step1-title">Your '.$step2appEn.' Account Number</div>
+                            <div class="zini-step1-title">Your '.$step2appEn.' Personal Number</div>
                             ').'
                             <input type="text" id="sender_mobile_input" class="zini-step1-input" placeholder="e.g 01XXXXXXXXX" autocomplete="off" maxlength="'.$mobileLength.'">
                             '.($upayBrandedHeader ? '
                             <div class="zini-step1-terms" style="margin-top: 24px; font-size: 15px; line-height: 1.4; font-weight: 800; color: #33475F;">By clicking on Confirm, you are agreeing<br>to the <a href="#" style="color: #024ca1; text-decoration: underline;">terms & conditions</a></div>
                             ' : '
-                            <div class="zini-step1-terms" style="margin-top: 12px; font-size: 12.5px; line-height: 1.4; font-weight: 700;">By clicking/tapping "Proceed" you are agreeing to our <a href="#">Terms and Conditions</a></div>
+                            <div class="zini-step1-terms" style="margin-top: 14px; font-size: 15px; line-height: 1.4; font-weight: 700;">Confirm and proceed, <a href="#" style="text-decoration: underline; text-underline-offset: 2px;">terms & conditions</a></div>
                             ').'
                         </div>
                         <div class="zini-white-footer">
                             <div class="zini-form-actions">
-                                <button class="zini-form-btn zini-cancel-btn" type="button" onclick="showCancelModal(true)">Close</button>
-                                <button class="zini-form-btn zini-verify-btn" type="button" id="step1-confirm-btn">'.($upayBrandedHeader ? 'Confirm' : 'Proceed').'</button>
+                                <button class="zini-form-btn zini-cancel-btn" type="button" onclick="showCancelModal(true)">Cancel</button>
+                                <button class="zini-form-btn zini-verify-btn" type="button" id="step1-confirm-btn">Confirm</button>
                             </div>
                             '.($nagadBrandedHeader ? '
                             <div style="text-align:center; margin-top: 20px;">
-                                <img src="'.rtrim(pp_site_address(), '/').'/assets/images/nagad.png" alt="নগদ" style="width: 100px; height: auto; object-fit: contain; opacity: 0.85; filter: brightness(0) invert(1);">
+                                <img src="'.rtrim(pp_site_address(), '/').'/assets/images/nagad.png?v='.(file_exists(__DIR__.'/../../../assets/images/nagad.png') ? filemtime(__DIR__.'/../../../assets/images/nagad.png') : time()).'" alt="নগদ" style="width: 100px; height: auto; object-fit: contain; opacity: 0.85; filter: brightness(0) invert(1);">
                             </div>
                             ' : '').'
                             '.($upayBrandedHeader ? '
@@ -3683,10 +3713,10 @@
                         <div class="zini-pink-body">
                             <div class="zini-number-box">
                                 <div>
-                                    <div class="title">PERSONAL NUMBER</div>
+                                    <div class="title">'.strtoupper($appTypeDisplay).' NUMBER</div>
                                     <div class="number">'.$personalNumber.'</div>
                                 </div>
-                                <div class="zini-copy-btn" onclick="pp_copy(\''.$personalNumber.'\', \'Account Number Copied!\')">
+                                <div class="zini-copy-btn" onclick="pp_copy(\''.$personalNumber.'\', \''.$appTypeDisplay.' Number Copied!\')">
                                     <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="18px" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
                                 </div>
                             </div>
@@ -3703,12 +3733,12 @@
                             <div class="zini-steps">
                                 <div class="zini-step">
                                     <div class="circle">1</div>
-                                    <div class="text">উপরের পার্সোনাল অ্যাকাউন্ট নম্বর কপি করুন</div>
+                                    <div class="text">উপরের '.$numberTextBn.' নম্বরটি কপি করুন</div>
                                 </div>
                                 <div class="zini-step">
                                     <div class="circle">2</div>
                                     <div class="text">'.$step2app.' অ্যাপ এ যান তারপর \''.$step2action.'\' নির্বাচন করুন
-                                        '.($step2img ? '<img src="'.rtrim(pp_site_address(), '/').'/'.$step2img.'" alt="Demo">' : '').'
+                                        '.($step2img ? '<img src="'.rtrim(pp_site_address(), '/').'/'.$step2img.'?v='.(file_exists(__DIR__.'/../../../'.$step2img) ? filemtime(__DIR__.'/../../../'.$step2img) : time()).'" alt="Demo">' : '').'
                                     </div>
                                 </div>
                                 <div class="zini-step">
@@ -3741,13 +3771,13 @@
                                 </div>
 
                                 <div class="zini-form-actions">
-                                    <button class="zini-form-btn zini-cancel-btn" type="button" onclick="showCancelModal(true)">Close</button>
+                                    <button class="zini-form-btn zini-cancel-btn" type="button" onclick="showCancelModal(true)">Cancel</button>
                                     <button class="zini-form-btn zini-verify-btn active-btn" type="submit" id="main-submit-btn">I\'ve Paid - Check Status</button>
                                 </div>
                             </form>
                             '.($nagadBrandedHeader ? '
                             <div style="text-align:center; margin-top: 20px;">
-                                <img src="'.rtrim(pp_site_address(), '/').'/assets/images/nagad.png" alt="নগদ" style="width: 100px; height: auto; object-fit: contain; opacity: 0.85; filter: brightness(0) invert(1);">
+                                <img src="'.rtrim(pp_site_address(), '/').'/assets/images/nagad.png?v='.(file_exists(__DIR__.'/../../../assets/images/nagad.png') ? filemtime(__DIR__.'/../../../assets/images/nagad.png') : time()).'" alt="নগদ" style="width: 100px; height: auto; object-fit: contain; opacity: 0.85; filter: brightness(0) invert(1);">
                             </div>
                             ' : '').'
                         </div>
@@ -3760,10 +3790,10 @@
                     <div class="zini-pink-body">
                         <div class="zini-number-box">
                             <div>
-                                <div class="title">PERSONAL NUMBER</div>
+                                <div class="title">'.strtoupper($appTypeDisplay).' NUMBER</div>
                                 <div class="number">'.$personalNumber.'</div>
                             </div>
-                            <div class="zini-copy-btn" onclick="pp_copy(\''.$personalNumber.'\', \'Account Number Copied!\')">
+                            <div class="zini-copy-btn" onclick="pp_copy(\''.$personalNumber.'\', \''.$appTypeDisplay.' Number Copied!\')">
                                 <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="18px" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
                             </div>
                         </div>
@@ -3780,12 +3810,12 @@
                         <div class="zini-steps">
                             <div class="zini-step">
                                 <div class="circle">1</div>
-                                <div class="text">উপরের পার্সোনাল অ্যাকাউন্ট নম্বর কপি করুন</div>
+                                <div class="text">উপরের '.$numberTextBn.' নম্বরটি কপি করুন</div>
                             </div>
                             <div class="zini-step">
                                 <div class="circle">2</div>
                                 <div class="text">'.$step2app.' অ্যাপ এ যান তারপর \''.$step2action.'\' নির্বাচন করুন
-                                    '.($step2img ? '<img src="'.rtrim(pp_site_address(), '/').'/'.$step2img.'" alt="Demo">' : '').'
+                                    '.($step2img ? '<img src="'.rtrim(pp_site_address(), '/').'/'.$step2img.'?v='.(file_exists(__DIR__.'/../../../'.$step2img) ? filemtime(__DIR__.'/../../../'.$step2img) : time()).'" alt="Demo">' : '').'
                                 </div>
                             </div>
                             <div class="zini-step">
@@ -3804,7 +3834,7 @@
                             <input type="text" name="trxid" id="default-trxid-input" placeholder="Enter TrxID" required autocomplete="off">
                             
                             <div class="zini-form-actions">
-                                <button class="zini-form-btn zini-cancel-btn" type="button" onclick="showCancelModal(true)">Close</button>
+                                <button class="zini-form-btn zini-cancel-btn" type="button" onclick="showCancelModal(true)">Cancel</button>
                                 <button class="zini-form-btn zini-verify-btn" type="submit" id="default-verify-btn" disabled>Verify</button>
                             </div>
                         </form>
