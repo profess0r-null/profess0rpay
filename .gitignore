@@ -1,2 +1,11 @@
 /pp-config.php
 /error_log
+
+# Chat Histories and Auto-generated docs
+chat_history_backup*.md
+project_recovery_state.md
+
+# Archives
+*.zip
+*.tar.gz
+*.rar

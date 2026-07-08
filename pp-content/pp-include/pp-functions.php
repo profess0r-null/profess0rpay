@@ -3158,6 +3158,16 @@
                     padding: 72px 30px 118px;
                     min-height: 200px;
                 }
+                .zini-step1-terms {
+                    margin-top: 14px;
+                    font-size: 15px;
+                    line-height: 1.4;
+                    font-weight: 700;
+                }
+                .zini-step1-terms a {
+                    text-decoration: underline;
+                    text-underline-offset: 2px;
+                }
                 @media (max-width: 520px) {
                     .zini-step1-body {
                         padding: 40px 20px 80px;
@@ -3312,10 +3322,10 @@
                     .zini-total-amount { font-size: 19px; }
                     .zini-shop-icon { width: 36px; height: 36px; }
                     .zini-pink-body { padding: 20px 16px 22px; }
-                    .zini-step1-body { padding: 32px 16px 28px; }
+                    .zini-step1-body { padding: 48px 16px 50px; }
                     .zini-step1-title { font-size: 15px; }
                     .zini-step1-input { height: 50px; font-size: 18px; }
-                    .zini-step1-terms { font-size: 11px; }
+                    .zini-step1-terms { font-size: 12px; margin-top: 10px; }
                     .zini-number-box .number { font-size: 22px; }
                     .zini-form-btn { height: 44px; font-size: 13px; }
                 }
@@ -3685,9 +3695,9 @@
                             ').'
                             <input type="text" id="sender_mobile_input" class="zini-step1-input" placeholder="e.g 01XXXXXXXXX" autocomplete="off" maxlength="'.$mobileLength.'">
                             '.($upayBrandedHeader ? '
-                            <div class="zini-step1-terms" style="margin-top: 24px; font-size: 15px; line-height: 1.4; font-weight: 800; color: #33475F;">By clicking on Confirm, you are agreeing<br>to the <a href="#" style="color: #024ca1; text-decoration: underline;">terms & conditions</a></div>
+                            <div class="zini-step1-terms" style="color: #33475F;">By clicking on Confirm, you are agreeing<br>to the <a href="#" style="color: #024ca1; text-decoration: underline;">terms & conditions</a></div>
                             ' : '
-                            <div class="zini-step1-terms" style="margin-top: 14px; font-size: 15px; line-height: 1.4; font-weight: 700;">Confirm and proceed, <a href="#" style="text-decoration: underline; text-underline-offset: 2px;">terms & conditions</a></div>
+                            <div class="zini-step1-terms">Confirm and proceed, <a href="#">terms & conditions</a></div>
                             ').'
                         </div>
                         <div class="zini-white-footer">

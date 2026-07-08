@@ -239,7 +239,7 @@
                 zcRedirect(); 
             }
         }, 1000);
-    </script>
+ </script>
     <?php endif; ?>
 </body>
 </html>

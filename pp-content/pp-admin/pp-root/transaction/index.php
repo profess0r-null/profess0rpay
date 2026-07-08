@@ -33,6 +33,78 @@
 
 <div class="page-body">
     <div class="container-xl">
+        <!-- Premium Analytics / Summary Cards -->
+        <div class="row row-cards mb-3" id="transaction-summary-cards">
+            <div class="col-sm-6 col-lg-3">
+                <div class="card card-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="bg-success text-white avatar" style="border-radius: 8px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M16.7 8a3 3 0 0 0 -2.7 -2h-4a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 -2.7 -2" /><path d="M12 3v3m0 12v3" /></svg>
+                                </span>
+                            </div>
+                            <div class="col">
+                                <div class="font-weight-medium" style="font-size: 15px; color: #475569;">Total Revenue</div>
+                                <div class="text-dark fw-bold" style="font-size: 20px;" id="summary-revenue">৳ 0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card card-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="bg-primary text-white avatar" style="border-radius: 8px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+                                </span>
+                            </div>
+                            <div class="col">
+                                <div class="font-weight-medium" style="font-size: 15px; color: #475569;">Successful</div>
+                                <div class="text-dark fw-bold" style="font-size: 20px;" id="summary-successful">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card card-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="bg-warning text-white avatar" style="border-radius: 8px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8v4l3 3" /><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /></svg>
+                                </span>
+                            </div>
+                            <div class="col">
+                                <div class="font-weight-medium" style="font-size: 15px; color: #475569;">Pending</div>
+                                <div class="text-dark fw-bold" style="font-size: 20px;" id="summary-pending">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card card-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="bg-danger text-white avatar" style="border-radius: 8px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+                                </span>
+                            </div>
+                            <div class="col">
+                                <div class="font-weight-medium" style="font-size: 15px; color: #475569;">Failed / Canceled</div>
+                                <div class="text-dark fw-bold" style="font-size: 20px;" id="summary-failed">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row row-deck row-cards">
             <div class="col-12 mb-2 d-flex justify-content-center">
                 <div>
@@ -71,51 +143,41 @@
             <div class="col-12">
                 <div class="card">
                     <div class="w-100" style="border-bottom: 1px solid #e8e7ec;">
-                        <div class="filter-tab-data p-4 d-none">
-                            <div class="d-flex justify-content-between">
-                                <h3 class="card-title">Filters</h3>
-
-                                <h5 class="text-danger" style=" font-size: 14px; cursor: pointer; " onclick="filter_hide_show_reset('filter-tab-data')">Reset</h5>
-                            </div>
-
-                            <div class="row g-3" style=" margin-top: -10px; margin-bottom: -25px; ">
-                                <div class="col-lg-3">
-                                    <div class="form-group">
-                                        <label for="fullname" class="form-label">Status</label>
-                                        <div class="form-control-wrap">
-                                            <select class="form-select" id="filter-status">
-                                                <option value="">All</option>
-                                                <option value="completed">Completed</option>
-                                                <option value="pending">Pending</option>
-                                                <option value="refunded">Refunded</option>
-                                                <option value="canceled">Canceled</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-lg-3">
-                                    <div class="form-group">
-                                        <label for="username" class="form-label">Created From</label>
-                                        <div class="form-control-wrap">
-                                            <input placeholder="dd/mm/yyyy" type="date" class="form-control" id="filter-created-from"> 
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-lg-3">
-                                    <div class="form-group">
-                                        <label for="email-address" class="form-label">Created Until</label>
-                                        <div class="form-control-wrap">
-                                            <input placeholder="dd/mm/yyyy" type="date" class="form-control" id="filter-created-until"> 
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div style="display: flex; flex-direction: row-reverse; height: 53px; align-items: center; padding-right: 20px; font-size: 22px;">
-                           <svg onclick="filter_hide_show('filter-tab-data')" style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-filter"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227z" /></svg>
+                           <svg data-bs-toggle="offcanvas" href="#filterOffcanvas" role="button" aria-controls="filterOffcanvas" style="cursor: pointer; color: #475569;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-filter"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227z" /></svg>
                         </div>
+                    </div>
+
+                    <!-- Offcanvas Filter -->
+                    <div class="offcanvas offcanvas-end" tabindex="-1" id="filterOffcanvas" aria-labelledby="filterOffcanvasLabel">
+                      <div class="offcanvas-header">
+                        <h2 class="offcanvas-title" id="filterOffcanvasLabel">Filter Transactions</h2>
+                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                      </div>
+                      <div class="offcanvas-body filter-tab-data">
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="filter-status">
+                                <option value="">All Statuses</option>
+                                <option value="completed">Completed</option>
+                                <option value="pending">Pending</option>
+                                <option value="refunded">Refunded</option>
+                                <option value="canceled">Canceled</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Created From</label>
+                            <input type="date" class="form-control" id="filter-created-from">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Created Until</label>
+                            <input type="date" class="form-control" id="filter-created-until">
+                        </div>
+                        <div class="mt-4">
+                            <button class="btn btn-primary w-100 mb-2" data-bs-dismiss="offcanvas" onclick="load_data_list(1)">Apply Filters</button>
+                            <button class="btn btn-light w-100" onclick="filter_hide_show_reset('filter-tab-data'); load_data_list(1);" data-bs-dismiss="offcanvas">Reset</button>
+                        </div>
+                      </div>
                     </div>
 
                    <div class="card-body border-bottom py-3">
@@ -198,6 +260,59 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Premium Modal Styling -->
+<style>
+#quickViewModal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+#quickViewModal .modal-header {
+    background-color: #0054a6; /* Deep blue header like screenshot */
+    color: #ffffff;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+}
+#quickViewModal .modal-title {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#quickViewModal .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.8;
+}
+#quickViewModal .btn-close:hover {
+    opacity: 1;
+}
+#quickViewBody {
+    background-color: #f1f5f9;
+    padding: 1.5rem;
+}
+</style>
+
+<!-- Quick View Modal -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="quickViewModalLabel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-invoice"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M9 7l1 0" /><path d="M9 13l6 0" /><path d="M13 17l2 0" /></svg>
+            Transaction Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="quickViewBody">
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script data-cfasync="false">
@@ -411,6 +526,13 @@
                 });
 
                 if (res.status === 'true') {
+                    if (res.summary) {
+                        document.getElementById('summary-revenue').innerText = res.summary.revenue;
+                        document.getElementById('summary-successful').innerText = res.summary.successful;
+                        document.getElementById('summary-pending').innerText = res.summary.pending;
+                        document.getElementById('summary-failed').innerText = res.summary.failed;
+                    }
+
                     res.response.forEach(item => {
                         let badge = 'secondary';
 
@@ -421,7 +543,7 @@
                         let redirectDelete = '';
                         
                         if (allowEdit) {
-                            redirectEdit = `style="cursor:pointer;" onclick="load_content('Edit Transaction','<?php echo $site_url.$path_admin ?>/transaction/edit?t_id=${item.id}','nav-item-transaction')"`;
+                            redirectEdit = `style="cursor:pointer;" onclick="openQuickView('${item.id}')"`;
                         }
 
                         if (allowDelete) {
@@ -518,6 +640,35 @@
     });
 
     load_data_list(1);
+
+    function openQuickView(id) {
+        $('#quickViewModal').modal('show');
+        
+        document.getElementById('quickViewBody').innerHTML = '<div class="text-center my-5"><div class="spinner-border text-primary" role="status"></div></div>';
+        
+        var csrf_token_default = $('input[name="csrf_token_default"]').val();
+        
+        $.ajax({
+            type: 'POST',
+            url: '<?php echo $site_url.$path_admin ?>/dashboard',
+            data: {action: "transaction-quick-view", csrf_token: csrf_token_default, t_id: id},
+            dataType: 'json',
+            success: function (res) {
+                if (res.status === 'true') {
+                    document.getElementById('quickViewBody').innerHTML = res.html;
+                } else {
+                    document.getElementById('quickViewBody').innerHTML = '<div class="p-4 text-center text-danger">' + res.message + '</div>';
+                }
+                
+                if (res.csrf_token) {
+                    $('input[name="csrf_token_default"]').val(res.csrf_token);
+                }
+            },
+            error: function () {
+                document.getElementById('quickViewBody').innerHTML = '<div class="p-4 text-center text-danger">Failed to load details.</div>';
+            }
+        });
+    }
 
     function filter_hide_show_reset(className) {
         const container = document.querySelector('.' + className);

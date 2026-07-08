@@ -199,6 +199,17 @@ if (!defined('Profess0rPay_INIT')) {
                                 </div>
                                 <div class="col-lg-12">
                                     <div class="form-group">
+                                        <label for="sms_data_validity" class="form-label">SMS Data Validity (in Hours) <span class="text-danger">*</span></label>
+                                        <div class="form-control-wrap">
+                                            <input type="number" class="form-control" id="sms_data_validity" name="sms_data_validity" value="<?php echo get_env('sms_data_validity', $global_response_brand['response'][0]['brand_id'], '1'); ?>" placeholder="e.g. 1" min="0" required>
+                                        </div>
+                                        <small class="form-hint">
+                                            Unused SMS data older than this duration will not be automatically matched to transactions. Set to <code>0</code> for unlimited validity.
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-lg-12">
+                                    <div class="form-group">
                                         <label for="redirect_url" class="form-label">Custom Redirect URL (Optional)</label>
                                         <div class="form-control-wrap">
                                             <input type="url" class="form-control" id="redirect_url" name="redirect_url" value="<?php echo (isset($global_response_brand['response'][0]['redirect_url']) && $global_response_brand['response'][0]['redirect_url'] !== '--') ? $global_response_brand['response'][0]['redirect_url'] : ''; ?>" placeholder="https://yourwebsite.com/diamond-topup">

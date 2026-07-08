@@ -1,0 +1,23 @@
+{
+    "name": "Profess0rPay Admin",
+    "short_name": "Admin Panel",
+    "description": "Profess0rPay Admin Dashboard",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#4361ee",
+    "icons": [
+        {
+            "src": "assets/images/default_favicon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "assets/images/default_favicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

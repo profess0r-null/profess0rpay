@@ -5515,6 +5515,11 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         set_env('dynamicNumericRoute', $dynamicNumericRoute, $global_response_brand['response'][0]['brand_id']);
                     }
 
+                    $sms_data_validity = escape_string($_POST['sms_data_validity'] ?? '');
+                    if ($sms_data_validity !== '') {
+                        set_env('sms_data_validity', $sms_data_validity, $global_response_brand['response'][0]['brand_id']);
+                    }
+
                     if($autoExchange == ""){
                         echo json_encode(['status' => "false", 'title' => 'Incomplete Information', 'message' => 'Please fill in all required fields before proceeding.', 'csrf_token' => $new_csrf_token]);
                     }else{
@@ -5567,12 +5572,19 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                     $new_name  = escape_string($_POST['name'] ?? '');
 
                     if ($device_id != '' && $new_name != '') {
-                        $update = updateData($db_prefix . 'device', ['name'], [$new_name], "device_id = '{$device_id}'");
-                        if ($update) {
-                            echo json_encode(['status' => 'true', 'title' => 'Success', 'message' => 'Device name updated successfully!', 'csrf_token' => $new_csrf_token]);
-                            exit();
+                        $deviceInfo = json_decode(getData($db_prefix . 'device', "WHERE device_id = '{$device_id}'"), true);
+                        if ($deviceInfo['status'] == true && !empty($deviceInfo['response'])) {
+                            $model = $deviceInfo['response'][0]['model'];
+                            $update = updateData($db_prefix . 'device', ['name'], [$new_name], "model = '{$model}'");
+                            if ($update) {
+                                echo json_encode(['status' => 'true', 'title' => 'Success', 'message' => 'Device name updated successfully!', 'csrf_token' => $new_csrf_token]);
+                                exit();
+                            } else {
+                                echo json_encode(['status' => 'false', 'title' => 'Failed', 'message' => 'Could not update device name.', 'csrf_token' => $new_csrf_token]);
+                                exit();
+                            }
                         } else {
-                            echo json_encode(['status' => 'false', 'title' => 'Failed', 'message' => 'Could not update device name.', 'csrf_token' => $new_csrf_token]);
+                            echo json_encode(['status' => 'false', 'title' => 'Error', 'message' => 'Device not found.', 'csrf_token' => $new_csrf_token]);
                             exit();
                         }
                     } else {
@@ -6974,6 +6986,33 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         $total_records = count($count_data['response'] ?? []);
                         $total_pages = ceil($total_records / $show_limit);
 
+                        $total_revenue = '0';
+                        $total_successful = 0;
+                        $total_pending = 0;
+                        $total_failed = 0;
+
+                        if (!empty($count_data['response'])) {
+                            foreach ($count_data['response'] as $crow) {
+                                if ($crow['status'] === 'completed') {
+                                    $total_successful++;
+                                    $c_net = money_sub(money_add($crow['amount'], $crow['processing_fee']), $crow['discount_amount']);
+                                    $total_revenue = money_add($total_revenue, $c_net);
+                                } elseif ($crow['status'] === 'pending') {
+                                    $total_pending++;
+                                } elseif ($crow['status'] === 'canceled' || $crow['status'] === 'refunded') {
+                                    $total_failed++;
+                                }
+                            }
+                        }
+                        
+                        // We will use a default currency symbol for the summary
+                        $summary_currency = '৳'; 
+                        if (!empty($response)) {
+                            // Extract symbol from the first row's net_amount if possible, or just default
+                            $summary_currency = preg_replace('/[0-9.,]/', '', $response[0]['net_amount']) ?: '৳';
+                        }
+                        $formatted_revenue = trim($summary_currency) . ' ' . money_round($total_revenue, 2);
+
                         $pagination = '<ul class="pagination m-0 ms-auto">';
 
                         // Prev button
@@ -7008,7 +7047,14 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
 
                         $datatableInfo = "Showing <strong>$start to $end</strong> of <strong>$total_records entries</strong>";
 
-                        echo json_encode(['status' => "true", 'response' => $response, 'datatableInfo' => $datatableInfo, 'pagination' => $pagination,'csrf_token' => $new_csrf_token]);
+                        $summary = [
+                            'revenue' => $formatted_revenue,
+                            'successful' => $total_successful,
+                            'pending' => $total_pending,
+                            'failed' => $total_failed
+                        ];
+
+                        echo json_encode(['status' => "true", 'response' => $response, 'datatableInfo' => $datatableInfo, 'pagination' => $pagination, 'summary' => $summary, 'csrf_token' => $new_csrf_token]);
                     }else{
                         echo json_encode(['status' => "false", 'title' => 'Nothing Here Yet', 'message' => 'No data is available at the moment.', 'csrf_token' => $new_csrf_token]);
                         exit();
@@ -7291,6 +7337,148 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                     echo json_encode(['status' => 'false', 'title' => 'Request Failed', 'message' => 'Invalid request' , 'csrf_token' => $new_csrf_token]);
                     exit();
                 }
+            }
+
+            if($action == "transaction-quick-view"){
+                if($global_user_login == true){
+                    $t_id = escape_string($_POST['t_id'] ?? '');
+                    $response_transaction = json_decode(getData($db_prefix.'transaction',' WHERE ref = "'.$t_id.'" AND brand_id ="'.$global_response_brand['response'][0]['brand_id'].'"'),true);
+                    if($response_transaction['status'] == true){
+                        $row = $response_transaction['response'][0];
+                        $customer_info = json_decode($row['customer_info'], true);
+                        
+                        $html = '<div class="row row-cards">';
+
+                        // FORMAT AMOUNTS TO 2 DECIMAL PLACES
+                        $amount_fmt = number_format((float)$row['amount'], 2, '.', '');
+                        $net_amount_fmt = number_format((float)$row['net_amount'], 2, '.', '');
+                        $fee_fmt = number_format((float)$row['processing_fee'], 2, '.', '');
+                        $discount_fmt = number_format((float)$row['discount_amount'], 2, '.', '');
+
+                        // ZiniPay Matching Styles
+                        $box_stl = 'border: 1px solid #e5e7eb; border-radius: 0.5rem; background-color: #f9fafb; padding: 1rem; margin-bottom: 1rem;';
+                        $hdr_stl = 'font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; margin-bottom: 0.75rem; margin-top: 0;';
+                        $lbl_stl = 'font-size: 0.75rem; font-weight: 600; color: #6b7280; margin-bottom: 0.25rem;';
+                        $val_stl = 'font-size: 0.875rem; font-weight: 500; color: #1f2937; word-break: break-all; margin-bottom: 0;';
+
+                        // SVG COPY ICON
+                        $copy_svg = '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="14px" width="14px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>';
+
+                        $html .= '<div class="row">';
+
+                        // COLUMN 1
+                        $html .= '<div class="col-md-6">';
+                        
+                        // TRANSACTION IDENTITY
+                        $html .= '<div style="'.$box_stl.'"><h3 style="'.$hdr_stl.'">Transaction Identity</h3>';
+                        $html .= '<div class="row mb-3"><div class="col-12">';
+                        $copy_js_ref = "pp_copy('".$row['ref']."', 'Invoice ID copied!', this);";
+                        $html .= '<div style="'.$lbl_stl.'">Invoice ID</div><div class="d-flex align-items-center"><p style="'.$val_stl.'">'.$row['ref'].'</p><div class="ms-2" style="cursor:pointer; color:#64748b; display:flex; align-items:center; transition: color 0.2s;" onmouseover="this.style.color=\'#3b82f6\'" onmouseout="this.style.color=\'#64748b\'" onclick="'.$copy_js_ref.'" title="Copy">'.$copy_svg.'</div></div>';
+                        $html .= '</div></div>';
+                        
+                        $badgeBg = 'bg-secondary';
+                        if ($row['status'] === 'completed') { $badgeBg = 'bg-success'; }
+                        if ($row['status'] === 'pending') { $badgeBg = 'bg-warning'; }
+                        if ($row['status'] === 'refunded') { $badgeBg = 'bg-indigo'; }
+                        if ($row['status'] === 'canceled') { $badgeBg = 'bg-danger'; }
+
+                        $html .= '<div class="row"><div class="col-6"><div style="'.$lbl_stl.'">Status</div><div><span class="badge '.$badgeBg.' text-white px-2 py-1 shadow-sm" style="font-size: 0.7rem; font-weight: 600; border-radius: 4px;">'.strtoupper($row['status']).'</span></div></div>';
+                        $html .= '<div class="col-6"><div style="'.$lbl_stl.'">Brand Name</div><p style="'.$val_stl.'">'.$global_response_brand['response'][0]['name'].'</p></div></div>';
+                        $html .= '</div>';
+
+                        // FINANCIAL DETAILS
+                        $html .= '<div style="'.$box_stl.'"><h3 style="'.$hdr_stl.'">Financial Details</h3>';
+                        $html .= '<div class="row mb-3"><div class="col-6"><div style="'.$lbl_stl.'">Amount</div><p style="'.$val_stl.'">'.$amount_fmt.' '.$row['currency'].'</p></div>';
+                        $html .= '<div class="col-6"><div style="'.$lbl_stl.'">Net Amount (Without Fee)</div><p style="'.$val_stl.'">'.$net_amount_fmt.' '.$row['currency'].'</p></div></div>';
+                        $html .= '<div class="row"><div class="col-6"><div style="'.$lbl_stl.'">Fee</div><p style="'.$val_stl.'">'.$fee_fmt.' '.$row['currency'].'</p></div>';
+                        $html .= '<div class="col-6"><div style="'.$lbl_stl.'">Discount</div><p style="'.$val_stl.'">'.$discount_fmt.' '.$row['currency'].'</p></div></div>';
+                        $html .= '</div>';
+                        
+                        $html .= '</div>'; // end col-md-6
+
+                        // COLUMN 2
+                        $html .= '<div class="col-md-6">';
+                        
+                        // CUSTOMER DETAILS
+                        $html .= '<div style="'.$box_stl.'"><h3 style="'.$hdr_stl.'">Customer Details</h3>';
+                        $html .= '<div class="row mb-3"><div class="col-6"><div style="'.$lbl_stl.'">Customer Name</div><p style="'.$val_stl.'">'.(empty($customer_info['name']) ? 'No data' : htmlspecialchars($customer_info['name'])).'</p></div>';
+                        $html .= '<div class="col-6"><div style="'.$lbl_stl.'">Customer Email</div><p style="'.$val_stl.'">'.(empty($customer_info['email']) ? 'No data' : htmlspecialchars($customer_info['email'])).'</p></div></div>';
+                        
+                        $domain = 'Unknown';
+                        if(!empty($row['redirect_url']) && $row['redirect_url'] !== '--') {
+                            $parsed = parse_url($row['redirect_url'], PHP_URL_HOST);
+                            if($parsed) $domain = $parsed;
+                        }
+                        $html .= '<div class="row"><div class="col-6"><div style="'.$lbl_stl.'">Customer Phone</div><p style="'.$val_stl.'">'.(empty($customer_info['mobile']) ? 'No data' : htmlspecialchars($customer_info['mobile'])).'</p></div>';
+                        $html .= '<div class="col-6"><div style="'.$lbl_stl.'">Domain</div><p style="'.$val_stl.'">'.$domain.'</p></div></div>';
+                        $html .= '</div>';
+
+                        // TRANSACTION DETAILS
+                        $response_gateway = json_decode(getData($db_prefix.'gateways',' WHERE brand_id ="'.$global_response_brand['response'][0]['brand_id'].'" AND gateway_id = "'.$row['gateway_id'].'"'),true);
+                        $gateway_name = $response_gateway['response'][0]['name'] ?? 'Unknown';
+
+                        $html .= '<div style="'.$box_stl.'"><h3 style="'.$hdr_stl.'">Transaction Details</h3>';
+                        $html .= '<div class="row mb-3"><div class="col-6"><div style="'.$lbl_stl.'">Payment Method</div><p style="'.$val_stl.'">'.$gateway_name.'</p></div>';
+                        $trx_id_val = ($row['trx_id'] == '--' || empty($row['trx_id'])) ? 'No data' : $row['trx_id'];
+                        
+                        $copy_js_trx = "pp_copy('".$row['trx_id']."', 'Transaction ID copied!', this);";
+                        $trx_copy_btn = ($trx_id_val !== 'No data') ? '<div class="ms-2" style="cursor:pointer; color:#64748b; display:flex; align-items:center; transition: color 0.2s;" onmouseover="this.style.color=\'#3b82f6\'" onmouseout="this.style.color=\'#64748b\'" onclick="'.$copy_js_trx.'" title="Copy">'.$copy_svg.'</div>' : '';
+                        
+                        $html .= '<div class="col-6"><div style="'.$lbl_stl.'">Transaction ID (Txn ID)</div><div class="d-flex align-items-center"><p style="'.$val_stl.'">'.$trx_id_val.'</p>'.$trx_copy_btn.'</div></div></div>';
+
+                        $html .= '<div class="row"><div class="col-6"><div style="'.$lbl_stl.'">Validation ID</div><p style="'.$val_stl.'">'.(empty($row['validation_id']) ? 'No data' : $row['validation_id']).'</p></div>';
+                        $html .= '<div class="col-6"><div style="'.$lbl_stl.'">Return Type</div><p style="'.$val_stl.'">API / Web</p></div></div>';
+                        $html .= '</div>';
+                        
+                        $html .= '</div>'; // end col-md-6
+                        $html .= '</div>'; // end row
+
+                        // URLS & INTEGRATION
+                        $html .= '<div class="col-12"><div style="'.$box_stl.'"><h3 style="'.$hdr_stl.'">URLs & Integration</h3>';
+                        $payment_link = $site_url.$path_payment_link.'/default/'.$global_response_brand['response'][0]['brand_id'].'?id='.$row['ref'];
+                        
+                        $copy_js_link = "pp_copy('".$payment_link."', 'Payment Link copied!', this);";
+                        $html .= '<div class="row mb-3"><div class="col-12"><div style="'.$lbl_stl.'">Payment Link</div><div class="d-flex align-items-center"><p style="'.$val_stl.'">'.$payment_link.'</p><div class="ms-2" style="cursor:pointer; color:#64748b; display:flex; align-items:center; transition: color 0.2s;" onmouseover="this.style.color=\'#3b82f6\'" onmouseout="this.style.color=\'#64748b\'" onclick="'.$copy_js_link.'" title="Copy">'.$copy_svg.'</div></div></div></div>';
+                        
+                        $html .= '<div class="row mb-3"><div class="col-12"><div style="'.$lbl_stl.'">Redirect URL</div><p style="'.$val_stl.'">'.($row['redirect_url'] == '--' ? 'No data' : $row['redirect_url']).'</p></div></div>';
+                        $html .= '<div class="row mb-3"><div class="col-12"><div style="'.$lbl_stl.'">Cancel URL</div><p style="'.$val_stl.'">'.($row['cancel_url'] == '--' ? 'No data' : $row['cancel_url']).'</p></div></div>';
+                        $html .= '<div class="row mb-0"><div class="col-12"><div style="'.$lbl_stl.'">Webhook URL</div><p style="'.$val_stl.'">'.($row['webhook_url'] == '--' ? 'No data' : $row['webhook_url']).'</p></div></div>';
+                        $html .= '</div></div>';
+
+                        // SYSTEM DATA
+                        $html .= '<div class="col-12"><div style="'.$box_stl.'"><h3 style="'.$hdr_stl.'">System Data</h3>';
+                        $html .= '<div class="row"><div class="col-6"><div style="'.$lbl_stl.'">Created At</div><p style="'.$val_stl.'">'.convertUTCtoUserTZ($row['created_date'], $global_response_brand['response'][0]['timezone'] ?? 'Asia/Dhaka', "M d, Y h:i A").'</p></div>';
+                        $html .= '<div class="col-6"><div style="'.$lbl_stl.'">Updated At</div><p style="'.$val_stl.'">'.convertUTCtoUserTZ($row['updated_date'], $global_response_brand['response'][0]['timezone'] ?? 'Asia/Dhaka', "M d, Y h:i A").'</p></div></div>';
+                        $html .= '</div></div>';
+
+                        // JSON DATA
+                        $html .= '<div class="col-12"><div style="'.$box_stl.'"><h3 style="'.$hdr_stl.'">JSON Data</h3>';
+                        $metadata_json = !empty($row['metadata']) && $row['metadata'] !== '--' ? json_encode(json_decode($row['metadata']), JSON_PRETTY_PRINT) : '{}';
+                        $html .= '<div style="'.$lbl_stl.'">Metadata</div>';
+                        $html .= '<pre style="max-height: 16rem; overflow-y: auto; border-radius: 0.5rem; background-color: #f3f4f6; padding: 1rem; font-size: 0.75rem; color: #1f2937; margin-bottom: 0;"><code>'.htmlspecialchars($metadata_json).'</code></pre>';
+                        $html .= '</div></div>';
+
+                        $html .= '</div>'; // end row-cards
+
+                        // Footer Action Buttons
+                        $html .= '<div class="d-flex align-items-center justify-content-between mt-2 pt-3 border-top">';
+                        $html .= '<div><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>';
+                        $html .= '<div class="d-flex gap-2">';
+                        
+                        $allowIpn = hasPermission(json_decode($global_response_permission['response'][0]['permission'], true), 'transaction', 'send_ipn', $global_user_response['response'][0]['role']);
+                        if($row['webhook_url'] != '--' && $row['webhook_url'] != '' && $allowIpn){
+                            $html .= '<button type="button" class="btn btn-info btnIpnItem-'.$row['ref'].'" onclick="ipnItem(\''.$row['ref'].'\')"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-webhook" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4.876 13.61a4 4 0 1 0 6.124 3.39h6" /><path d="M15.066 20.502a4 4 0 1 0 1.934 -7.502c-.706 0 -1.424 .179 -2 .5l-3 -5.5" /><path d="M16 8a4 4 0 1 0 -8 0c0 1.506 .77 2.818 2 3.5l-3 5.5" /></svg> Trigger Webhook</button>';
+                        }
+                        
+                        $html .= '<button type="button" class="btn btn-primary" onclick="$(\'#quickViewModal\').modal(\'hide\'); setTimeout(() => load_content(\'Edit Transaction\',\''.$site_url.$path_admin.'/transaction/edit?t_id='.$row['ref'].'\',\'nav-item-transaction\'), 300);"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-external-link" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6" /><path d="M11 13l9 -9" /><path d="M15 4h5v5" /></svg> View Full Details</button>';
+                        $html .= '</div></div>';
+                        
+                        echo json_encode(['status' => 'true', 'html' => $html, 'csrf_token' => $new_csrf_token]);
+                    }else{
+                        echo json_encode(['status' => 'false', 'message' => 'Transaction not found', 'csrf_token' => $new_csrf_token]);
+                    }
+                }
+                exit();
             }
 
             if($action == "transaction-delete"){
@@ -9406,7 +9594,16 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                         ':number'     => $search_number,
                                                         ':status'     => 'approved'
                                                     ];
-                                                    $response_sms = json_decode(getData($db_prefix.'sms_data', 'WHERE sender_key = :sender_key AND type = :type AND number LIKE :number AND status = :status ORDER BY id DESC', '* FROM', $params), true);
+
+                                                    $sms_validity = get_env('sms_data_validity', $response_transaction['response'][0]['brand_id'], '1');
+                                                    $validity_condition = "";
+                                                    if ($sms_validity > 0) {
+                                                        $validity_time = date('Y-m-d H:i:s', strtotime("-{$sms_validity} hours"));
+                                                        $validity_condition = " AND created_date >= :validity_time";
+                                                        $params[':validity_time'] = $validity_time;
+                                                    }
+
+                                                    $response_sms = json_decode(getData($db_prefix.'sms_data', 'WHERE sender_key = :sender_key AND type = :type AND number LIKE :number AND status = :status'.$validity_condition.' ORDER BY id DESC', '* FROM', $params), true);
 
                                                     $matched_sms = null;
                                                     if ($response_sms['status'] == true && !empty($response_sms['response'])) {
@@ -9468,7 +9665,16 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                             ':trx_id'     => $trxid,
                                                             ':status'     => 'approved'
                                                         ];
-                                                        $response_sms = json_decode(getData($db_prefix.'sms_data', 'WHERE sender_key = :sender_key AND type = :type AND trx_id = :trx_id AND status = :status', '* FROM', $params), true);
+
+                                                        $sms_validity = get_env('sms_data_validity', $response_transaction['response'][0]['brand_id'], '1');
+                                                        $validity_condition = "";
+                                                        if ($sms_validity > 0) {
+                                                            $validity_time = date('Y-m-d H:i:s', strtotime("-{$sms_validity} hours"));
+                                                            $validity_condition = " AND created_date >= :validity_time";
+                                                            $params[':validity_time'] = $validity_time;
+                                                        }
+
+                                                        $response_sms = json_decode(getData($db_prefix.'sms_data', 'WHERE sender_key = :sender_key AND type = :type AND trx_id = :trx_id AND status = :status'.$validity_condition, '* FROM', $params), true);
 
                                                         $matched_sms = null;
                                                         if ($response_sms['status'] == true && !empty($response_sms['response'])) {
@@ -9677,6 +9883,13 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
 
                         $response = json_decode(getData($db_prefix.'device','WHERE otp = :otp', '* FROM', $params),true);
                         if($response['status'] == true){
+                            if (!empty($model)) {
+                                $existingNameCheck = json_decode(getData($db_prefix . 'device', "WHERE model = '{$model}' AND name != '' ORDER BY id DESC LIMIT 1"), true);
+                                if ($existingNameCheck['status'] == true && !empty($existingNameCheck['response'])) {
+                                    $name = $existingNameCheck['response'][0]['name'];
+                                }
+                            }
+
                             $otp_new = generateItemID();
 
                             $columns = ['otp', 'name', 'model', 'android_level', 'app_version', 'status', 'updated_date'];
