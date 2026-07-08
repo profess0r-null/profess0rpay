@@ -325,7 +325,7 @@
                                 </div>
 
                                 <div class="border rounded p-2 mt-2 d-flex align-items-center justify-content-center" style=" height: 90px; max-width: 300px; ">
-                                    <img src="<?php echo $response_gateway['response'][0]['logo'];?>" accept="image/*" alt="" id="preview2" style=" max-width: 100%; max-height: 100%; ">
+                                    <img src="<?php echo (strpos($response_gateway['response'][0]['logo'], 'http') === 0 || strpos($response_gateway['response'][0]['logo'], 'data:image') === 0 || strpos($response_gateway['response'][0]['logo'], '/') === 0) ? $response_gateway['response'][0]['logo'] : $site_url . $response_gateway['response'][0]['logo']; ?>" accept="image/*" alt="" id="preview2" style=" max-width: 100%; max-height: 100%; ">
                                 </div>
                             </div>
                         </div>

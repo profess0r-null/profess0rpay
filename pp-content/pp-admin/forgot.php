@@ -27,6 +27,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Forgot Password - Profess0rPay</title>
     <link rel="shortcut icon" href="<?= $professorpay_favicon ?? '' ?>">
+    <link rel="manifest" href="<?php echo $site_url ?>manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?php echo $site_url ?>sw.js');
+            });
+        }
+    </script>
     <link rel="stylesheet" href="<?php echo $site_url ?>assets/css/tabler.min.css?v=1.5" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.4.0/dist/css/tabler-vendors.min.css" />
 

@@ -28,7 +28,7 @@ $updater = new Profess0rPayUpdater();
 
 $currentVersion = '1.0.0';
 $pdo = connectDatabase();
-$stmt = $pdo->prepare("SELECT `setting_value` FROM `{$db_prefix}settings` WHERE `setting_key` = 'pp_version'");
+$stmt = $pdo->prepare("SELECT `value` FROM `{$db_prefix}env` WHERE `option_name` = 'pp_version'");
 $stmt->execute();
 if($val = $stmt->fetchColumn()) {
     $currentVersion = $val;
@@ -82,7 +82,7 @@ try {
     if($stmt->fetchColumn() > 0) {
         $pdo->prepare("UPDATE `{$db_prefix}env` SET `value` = ? WHERE `option_name` = 'pp_version'")->execute([$targetVersion]);
     } else {
-        $pdo->prepare("INSERT INTO `{$db_prefix}env` (`option_name`, `value`) VALUES ('pp_version', ?)")->execute([$targetVersion]);
+        $pdo->prepare("INSERT INTO `{$db_prefix}env` (`brand_id`, `option_name`, `value`, `created_date`) VALUES ('both', 'pp_version', ?, ?)")->execute([$targetVersion, date('Y-m-d H:i:s')]);
     }
     
     // Log success

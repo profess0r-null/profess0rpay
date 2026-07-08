@@ -29,6 +29,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Profess0rPay</title>
     <link rel="shortcut icon" href="<?= $professorpay_favicon ?? '' ?>">
+    <link rel="manifest" href="<?php echo $site_url ?>manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?php echo $site_url ?>sw.js');
+            });
+        }
+    </script>
     <link rel="stylesheet" href="<?php echo $site_url ?>assets/css/tabler.min.css?v=1.7" />
     <link rel="stylesheet" href="<?php echo $site_url ?>assets/css/choices.min.css">
 

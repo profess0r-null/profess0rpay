@@ -545,11 +545,6 @@
                 }
             }, 1000);
         </script>
-        <?php } elseif(in_array($status, ['canceled', 'rejected']) && !empty($another_payment_url)) { ?>
-        <script>
-            // Instant redirect for canceled/rejected
-            window.location.href = "<?= $another_payment_url ?>";
-        </script>
         <?php } ?>
 
     <?php } else { 

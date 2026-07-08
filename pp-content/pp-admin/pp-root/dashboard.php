@@ -96,7 +96,7 @@ body {
         justify-content: space-between;
     }
     .header-actions .btn-modern {
-        font-size: 10px;
+        font-size: 12px;
         padding: 6px 4px;
         flex: 1;
         justify-content: center;
