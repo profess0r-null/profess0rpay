@@ -5411,6 +5411,11 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                     $facebook_messenger = escape_string($_POST['facebook_messenger'] ?? '');
                     $facebook_page = escape_string($_POST['facebook_page'] ?? '');
                     $autoExchange = escape_string($_POST['autoExchange'] ?? '');
+                    
+                    $dynamicNumericRoute = escape_string($_POST['dynamicNumericRoute'] ?? '');
+                    if ($dynamicNumericRoute !== '') {
+                        set_env('dynamicNumericRoute', $dynamicNumericRoute, $global_response_brand['response'][0]['brand_id']);
+                    }
 
                     if($autoExchange == ""){
                         echo json_encode(['status' => "false", 'title' => 'Incomplete Information', 'message' => 'Please fill in all required fields before proceeding.', 'csrf_token' => $new_csrf_token]);

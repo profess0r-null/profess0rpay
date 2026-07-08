@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.2.2] - 2026-07-08
+### Added
+- Added Dynamic Numeric Routing: Visiting purely numeric routes (e.g. `/30`) redirects to the default payment link with a fixed amount. Can be toggled from Admin General Settings.
 ### Fixed
 - Fixed auto-updater bug in `process.php` causing incorrect version checks from the settings table instead of the env table.
 - Fixed broken gateway logo previews in the admin panel for locally hosted images.

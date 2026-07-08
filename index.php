@@ -127,6 +127,18 @@
     if(!file_exists(__DIR__ . '/.maintenance')){
         if(file_exists(__DIR__ . '/pp-config.php')){
             if (isset($requriemntnoneedchecked) && $requriemntnoneedchecked === true) {
+                if (is_numeric($route) && $route > 0) {
+                    $response_brand = json_decode(getData($db_prefix.'brands','LIMIT 1', '* FROM', []),true);
+                    if($response_brand['status'] == true && !empty($response_brand['response'])){
+                        $brandRow = $response_brand['response'][0];
+                        $dynamicNumericRoute = get_env('dynamicNumericRoute', $brandRow['brand_id']);
+                        if ($dynamicNumericRoute === 'enabled') {
+                            echo '<script>location.href="'.$path_payment_link.'/default/'.$brandRow['brand_id'].'?amount='.$route.'";</script>';
+                            exit;
+                        }
+                    }
+                }
+
                 switch ($route) {
                     case '404':
                         if(file_exists(__DIR__ . '/pp-404.php')){
@@ -1527,6 +1539,7 @@
                                         'pid' => $brandRow['brand_id'],
                                         'currency'    => (($v = get_env('payment-link-default-currency', $brandRow['brand_id'])) && $v !== '--') ? $v : $brandRow['currency_code'],
                                         'brandId' => $brandRow['brand_id'],
+                                        'total' => (isset($_GET['amount']) && is_numeric($_GET['amount']) && $_GET['amount'] > 0) ? $_GET['amount'] : ''
                                     ];
                                     
                                     $brandInfo = [

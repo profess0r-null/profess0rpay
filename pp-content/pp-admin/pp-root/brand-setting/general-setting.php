@@ -180,6 +180,23 @@ if (!defined('Profess0rPay_INIT')) {
                                         When enabled, exchange rates are automatically fetched from external providers. When disabled, you must manually configure rates in Currency Settings.
                                     </small>
                                 </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label">Dynamic Numeric Routing</label>
+                                    <div class="form-control-wrap mb-2">
+                                        <div class="input-group">
+                                            <?php
+                                                $dynamicNumericRoute = get_env('dynamicNumericRoute', $global_response_brand['response'][0]['brand_id']);
+                                                $checkedDynamic = ($dynamicNumericRoute === 'enabled') ? 'checked' : '';
+                                            ?>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="dynamicNumericRoute" value="enabled" <?= $checkedDynamic ?>>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <small class="form-hint">
+                                        When enabled, visiting purely numeric routes like <code>/30</code> will redirect to the default payment link with the amount locked to 30.
+                                    </small>
+                                </div>
                                 <div class="col-lg-12">
                                     <div class="form-group">
                                         <label for="redirect_url" class="form-label">Custom Redirect URL (Optional)</label>
@@ -499,6 +516,9 @@ if (!defined('Profess0rPay_INIT')) {
 
         const autoExchange = document.getElementById('autoExchange').checked ? 'enabled' : 'disabled';
         formData.set('autoExchange', autoExchange); // add to formData
+
+        const dynamicNumericRoute = document.getElementById('dynamicNumericRoute').checked ? 'enabled' : 'disabled';
+        formData.set('dynamicNumericRoute', dynamicNumericRoute);
 
         $.ajax({
             type: 'POST',

@@ -4797,7 +4797,7 @@ if (!function_exists('pp_renderFormFields')) {
         $isReadonly = false;
         $amountValue = '';
 
-        if ($type === 'payment-link') {
+        if ($type === 'payment-link' || $type === 'payment-link-default') {
             if (isset($data['paymentLink']['total']) && floatval($data['paymentLink']['total']) > 0) {
                 $isReadonly = true;
                 $amountValue = $data['paymentLink']['total'];
