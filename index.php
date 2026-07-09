@@ -412,7 +412,7 @@
                                 $mobile        = $data['mobile_number'] ?? $data['customer_mobile'] ?? '';
                                 $amount        = $data['amount'] ?? '0';
                                 $currency      = $data['currency'] ?? 'BDT';
-                                $returnUrl     = $data['return_url'] ?? '';
+                                $returnUrl     = $data['return_url'] ?? $data['redirect_url'] ?? $data['cancel_url'] ?? '';
                                 $webhookUrl    = $data['webhook_url'] ?? '';
                                 $metadataRaw   = isset($data['metadata']) ? (is_array($data['metadata']) ? json_encode($data['metadata']) : $data['metadata']) : '{}';
 
@@ -641,11 +641,71 @@
                                     $mobile        = $data['mobile_number'] ?? '';
                                     $amount        = $data['amount'] ?? '0';
                                     $currency      = $data['currency'] ?? 'BDT';
+                                    $returnUrl     = $data['return_url'] ?? $data['redirect_url'] ?? $data['cancel_url'] ?? '';
                                     $webhookUrl    = $data['webhook_url'] ?? '--';
-                                    $metadataRaw   = $data['metadata'] ?? '{}';
+                                    $metadataRaw   = isset($data['metadata']) ? (is_array($data['metadata']) ? json_encode($data['metadata']) : $data['metadata']) : '{}';
+
+                                    if (!function_exists('getDomainFromUrl')) {
+                                        function getDomainFromUrl($url) {
+                                            if (filter_var($url, FILTER_VALIDATE_URL)) {
+                                                return parse_url($url, PHP_URL_HOST);
+                                            }
+                                            return false;
+                                        }
+                                    }
+
+                                    if($returnUrl == ""){
+                                        $returnUrl = '--';
+                                    }else{
+                                        $returnDomain  = getDomainFromUrl($returnUrl);
+
+                                        if (!$returnDomain) {
+                                            http_response_code(400);
+                                            echo json_encode(['error' => ['code' => 'INVALID_URL', 'message' => 'Return URL is invalid.']]);
+                                            exit;
+                                        }else{
+                                            $params = [ ':domain' => $returnDomain ];
+
+                                            $response_urlCheck = json_decode(getData($db_prefix.'domain','WHERE domain = :domain', '* FROM', $params),true);
+                                            if($response_urlCheck['status'] == true){
+                                                if($response_urlCheck['response'][0]['status'] !== "active"){
+                                                    http_response_code(400);
+                                                    echo json_encode(['error' => ['code' => 'INVALID_URL', 'message' => 'The Return URL ("'.$returnDomain.'") is whitelisted but not active. Please activate this domain in the "Domains" section to proceed.']]);
+                                                    exit;
+                                                }
+                                            }else{
+                                                http_response_code(400);
+                                                echo json_encode(['error' => ['code' => 'INVALID_URL', 'message' => 'The provided Return URL ("'.$returnDomain.'") is not whitelisted. Please add this domain in the "Domains" section to continue.']]);
+                                                exit;
+                                            }
+                                        }
+                                    }
 
                                     if($webhookUrl == ""){
                                         $webhookUrl = '--';
+                                    }else{
+                                        $webhookDomain = getDomainFromUrl($webhookUrl);
+
+                                        if (!$webhookDomain) {
+                                            http_response_code(400);
+                                            echo json_encode(['error' => ['code' => 'INVALID_URL', 'message' => 'Webhook URL is invalid.']]);
+                                            exit;
+                                        }else{
+                                            $params = [ ':domain' => $webhookDomain ];
+
+                                            $response_urlCheck = json_decode(getData($db_prefix.'domain','WHERE domain = :domain', '* FROM', $params),true);
+                                            if($response_urlCheck['status'] == true){
+                                                if($response_urlCheck['response'][0]['status'] !== "active"){
+                                                    http_response_code(400);
+                                                    echo json_encode(['error' => ['code' => 'INVALID_URL', 'message' => 'The Webhook URL ("'.$webhookDomain.'") is whitelisted but not active. Please activate this domain in the "Domains" section to proceed.']]);
+                                                    exit;
+                                                }
+                                            }else{
+                                                http_response_code(400);
+                                                echo json_encode(['error' => ['code' => 'INVALID_URL', 'message' => 'The provided Webhook URL ("'.$webhookDomain.'") is not whitelisted. Please add this domain in the "Domains" section to continue.']]);
+                                                exit;
+                                            }
+                                        }
                                     }
 
                                     if (is_string($metadataRaw)) {
@@ -744,8 +804,8 @@
                                             'mobile' => $mobile
                                         ], JSON_UNESCAPED_UNICODE);
 
-                                        $columns = ['brand_id', 'ref', 'customer_info', 'amount', 'currency', 'metadata', 'webhook_url', 'created_date', 'updated_date'];
-                                        $values = [$response_api['response'][0]['brand_id'], $payment_id, $customerInfoJson, money_sanitize($amount), $currency, json_encode($metadata), $webhookUrl, getCurrentDatetime('Y-m-d H:i:s'), getCurrentDatetime('Y-m-d H:i:s')];
+                                        $columns = ['brand_id', 'ref', 'customer_info', 'amount', 'currency', 'metadata', 'return_url', 'webhook_url', 'created_date', 'updated_date'];
+                                        $values = [$response_api['response'][0]['brand_id'], $payment_id, $customerInfoJson, money_sanitize($amount), $currency, json_encode($metadata), $returnUrl, $webhookUrl, getCurrentDatetime('Y-m-d H:i:s'), getCurrentDatetime('Y-m-d H:i:s')];
 
                                         insertData($db_prefix.'transaction', $columns, $values);
 

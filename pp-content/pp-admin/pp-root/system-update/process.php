@@ -47,7 +47,7 @@ try {
 
     $targetVersion = $manifest['version'] ?? str_replace('v', '', $release['tag_name']);
 
-    if (version_compare($currentVersion, $targetVersion, '>=')) {
+    if (version_compare($currentVersion, $targetVersion, '>')) {
         throw new \Exception("System is already up to date.");
     }
 
@@ -87,7 +87,8 @@ try {
     
     // Log success
     try {
-        $pdo->prepare("INSERT INTO `{$db_prefix}update_logs` (`version`, `status`, `log`) VALUES (?, 'Success', 'Update completed atomically.')")->execute([$targetVersion]);
+        $dt_now = getCurrentDatetime();
+        $pdo->prepare("INSERT INTO `{$db_prefix}update_logs` (`version`, `status`, `log`, `created_at`) VALUES (?, 'Success', 'Update completed atomically.', ?)")->execute([$targetVersion, $dt_now]);
     } catch (\Throwable $e) {}
 
     @unlink(__DIR__ . '/../../../../.maintenance');
@@ -103,7 +104,8 @@ try {
     $v = $targetVersion ?? 'unknown';
     $msg = $e->getMessage();
     try {
-        $pdo->prepare("INSERT INTO `{$db_prefix}update_logs` (`version`, `status`, `log`) VALUES (?, 'Failed', ?)")->execute([$v, $msg]);
+        $dt_now = getCurrentDatetime();
+        $pdo->prepare("INSERT INTO `{$db_prefix}update_logs` (`version`, `status`, `log`, `created_at`) VALUES (?, 'Failed', ?, ?)")->execute([$v, $msg, $dt_now]);
     } catch (\Throwable $ex) {}
     
     if (ob_get_level()) ob_clean();

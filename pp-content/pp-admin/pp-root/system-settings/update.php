@@ -80,6 +80,8 @@ if (!defined('Profess0rPay_INIT')) {
                         <h2 class="mb-0 fw-bold <?= version_compare($currentVersion, $latestVer, '<') ? 'text-success' : 'text-primary' ?>" id="latest-ver-tag">v<?= htmlspecialchars($latestVer) ?></h2>
                         <?php if (version_compare($currentVersion, $latestVer, '<')): ?>
                             <span class="badge bg-warning mt-2 d-inline-block" style="width: fit-content;">New Update Available!</span>
+                        <?php elseif (version_compare($currentVersion, $latestVer, '==')): ?>
+                            <span class="badge bg-primary text-white mt-2 d-inline-block" style="width: fit-content;">Re-install Available</span>
                         <?php else: ?>
                             <span class="badge bg-success mt-2 d-inline-block" style="width: fit-content;">You are up to date!</span>
                         <?php endif; ?>
@@ -98,7 +100,7 @@ if (!defined('Profess0rPay_INIT')) {
                     <?php foreach($preflightErrors as $err) echo "<li>$err</li>"; ?>
                 </ul>
             </div>
-        <?php elseif ($latestRelease && version_compare($currentVersion, str_replace('v', '', $latestRelease['tag_name']), '<')): ?>
+        <?php elseif ($latestRelease && version_compare($currentVersion, str_replace('v', '', $latestRelease['tag_name']), '<=')): ?>
             <div class="card mt-4">
                 <div class="card-header">
                     <h3 class="card-title">Release Notes (<?= htmlspecialchars($latestRelease['tag_name']) ?>)</h3>
@@ -109,10 +111,40 @@ if (!defined('Profess0rPay_INIT')) {
                     </div>
                     
                     <div id="update-action-container">
-                        <button class="btn btn-primary btn-lg" id="btnRunUpdate" onclick="startUpdateSequence()">
+                        <button class="btn btn-primary btn-lg" id="btnRunUpdate" data-bs-toggle="modal" data-bs-target="#modal-confirm-update">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
-                            Download & Install Update
+                            <?php echo version_compare($currentVersion, str_replace('v', '', $latestRelease['tag_name']), '==') ? 'Re-install Update (Force)' : 'Download & Install Update'; ?>
                         </button>
+                    </div>
+
+                    <!-- Update Confirmation Modal -->
+                    <div class="modal modal-blur fade" id="modal-confirm-update" tabindex="-1" role="dialog" aria-hidden="true">
+                      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          <div class="modal-status bg-warning"></div>
+                          <div class="modal-body text-center py-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-warning icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+                            <h3>Are you sure?</h3>
+                            <div class="text-muted">
+                                <p>Do you really want to proceed with the system update?</p>
+                                <ul class="text-start mb-0">
+                                    <li>All core files will be replaced with the latest version.</li>
+                                    <li>Your database may be updated.</li>
+                                    <li>Please ensure you have backed up any custom modifications.</li>
+                                </ul>
+                            </div>
+                          </div>
+                          <div class="modal-footer">
+                            <div class="w-100">
+                              <div class="row">
+                                <div class="col"><button class="btn w-100" data-bs-dismiss="modal">Cancel</button></div>
+                                <div class="col"><button class="btn btn-warning w-100" data-bs-dismiss="modal" onclick="startUpdateSequence()">Confirm</button></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     <div id="update-progress-container" style="display: none;">

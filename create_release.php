@@ -17,7 +17,8 @@ $exclude = [
     'updater_fix.zip',
     'project_recovery_state.md',
     'scratch',
-    'testzip'
+    'testzip',
+    'pp-content/tmp'
 ];
 
 $dir = __DIR__;

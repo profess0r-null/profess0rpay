@@ -37,7 +37,11 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php else: ?>
             <?php foreach($logs as $log): ?>
                 <tr>
-                    <td><?= date('d M Y, h:i A', strtotime($log['created_at'])) ?></td>
+                    <td><?php
+                        $dt = new DateTime($log['created_at'], new DateTimeZone('UTC'));
+                        $dt->setTimezone(new DateTimeZone('Asia/Dhaka'));
+                        echo $dt->format('d M Y, h:i A');
+                    ?></td>
                     <td><span class="badge bg-primary-lt">v<?= htmlspecialchars($log['version']) ?></span></td>
                     <td>
                         <?php if($log['status'] === 'Success'): ?>

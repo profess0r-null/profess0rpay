@@ -702,7 +702,103 @@
 
             const type = this.dataset.type;
 
-            load_data_list(1);
         });
     });
+
+    function pp_copy(text, msg = 'Copied!', el = null) {
+        let origHtml = '';
+        if(el) {
+            origHtml = el.innerHTML;
+            el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>';
+            setTimeout(() => { el.innerHTML = origHtml; }, 1500);
+        }
+
+        if (!text) {
+            if (typeof createToast === "function") {
+                createToast({
+                    title: "Error",
+                    description: "No content to copy",
+                    svg: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d63939" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-exclamation-circle"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>',
+                    timeout: 1500,
+                    top: 20
+                });
+            } else {
+                alert("No content to copy");
+            }
+            return;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                if (typeof createToast === "function") {
+                    createToast({ title: "Success", description: msg, type: "success" });
+                } else {
+                    alert(msg);
+                }
+            }).catch(err => {
+                console.error("Failed to copy!", err);
+            });
+        } else {
+            let textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                if (typeof createToast === "function") {
+                    createToast({ title: "Success", description: msg, type: "success" });
+                } else {
+                    alert(msg);
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            document.body.removeChild(textArea);
+        }
+    }
+
+    function ipnItem(ItemID) {
+        var csrf_token_default = document.querySelector('input[name="csrf_token_default"]').value;
+        var btnClass = '.btnIpnItem-' + ItemID;
+        var btn = document.querySelector(btnClass);
+        if (btn) {
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+            btn.disabled = true;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: '<?php echo $site_url.$path_admin ?>/dashboard',
+            data: {action: "transaction-ipn", csrf_token: csrf_token_default, ItemID: ItemID},
+            dataType: 'json',
+            success: function (response) {
+                if (response.status === "true" || response.status === true) {
+                    if (typeof createToast === "function") {
+                        createToast({ title: 'Success', description: response.message, timeout: 6000, top: 70 });
+                    }
+                } else {
+                    if (typeof createToast === "function") {
+                        createToast({ title: response.title || 'Error', description: response.message || 'Something went wrong', timeout: 6000, top: 70 });
+                    }
+                }
+                if (btn) {
+                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-webhook" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4.876 13.61a4 4 0 1 0 6.124 3.39h6" /><path d="M15.066 20.502a4 4 0 1 0 1.934 -7.502c-.706 0 -1.424 .179 -2 .5l-3 -5.5" /><path d="M16 8a4 4 0 1 0 -8 0c0 1.506 .77 2.818 2 3.5l-3 5.5" /></svg> Trigger Webhook';
+                    btn.disabled = false;
+                }
+            },
+            error: function () {
+                if (typeof createToast === "function") {
+                    createToast({ title: 'Error', description: 'Network error or server unavailable.', timeout: 6000, top: 70 });
+                }
+                if (btn) {
+                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-webhook" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4.876 13.61a4 4 0 1 0 6.124 3.39h6" /><path d="M15.066 20.502a4 4 0 1 0 1.934 -7.502c-.706 0 -1.424 .179 -2 .5l-3 -5.5" /><path d="M16 8a4 4 0 1 0 -8 0c0 1.506 .77 2.818 2 3.5l-3 5.5" /></svg> Trigger Webhook';
+                    btn.disabled = false;
+                }
+            }
+        });
+    }
 </script>

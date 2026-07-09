@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2026-07-09
+### Added
+- Added domain whitelist security validation for popup checkouts to prevent unauthorized cross-origin payment requests.
+- Added dynamic 'Copy to Clipboard' buttons with toast notifications for Transaction ID and Payment Link fields in the Admin Transaction Details modal.
+- Added 'Force Re-install' capability to the OTA System Updater, allowing admins to re-download and re-install the current version without needing a version bump.
+
+### Fixed
+- Fixed an API payload bug where popup checkouts failed to capture and save `return_url` in the database.
+- Added backward compatibility in the API payload to accept `redirect_url` and `cancel_url` as fallbacks for `return_url`.
+- Redesigned Admin Transaction Details modal for a cleaner, compact view by removing unnecessary Bootstrap card headers and box shadows.
+- Rearranged transaction data blocks to categorize Financial Data, System Data, and Customer Details logically.
+
 ## [1.2.2] - 2026-07-08
 ### Added
 - Added Dynamic Numeric Routing: Visiting purely numeric routes (e.g. `/30`) redirects to the default payment link with a fixed amount. Can be toggled from Admin General Settings.

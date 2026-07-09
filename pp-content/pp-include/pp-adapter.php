@@ -5575,7 +5575,14 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         $deviceInfo = json_decode(getData($db_prefix . 'device', "WHERE device_id = '{$device_id}'"), true);
                         if ($deviceInfo['status'] == true && !empty($deviceInfo['response'])) {
                             $model = $deviceInfo['response'][0]['model'];
-                            $update = updateData($db_prefix . 'device', ['name'], [$new_name], "model = '{$model}'");
+                            $a_id = $global_user_response['response'][0]['a_id'];
+                            
+                            $update_condition = "device_id = '{$device_id}'";
+                            if (!empty($model) && $model !== '--') {
+                                $update_condition .= " OR (model = '{$model}' AND d_id = '{$a_id}')";
+                            }
+                            
+                            $update = updateData($db_prefix . 'device', ['name'], [$new_name], $update_condition);
                             if ($update) {
                                 echo json_encode(['status' => 'true', 'title' => 'Success', 'message' => 'Device name updated successfully!', 'csrf_token' => $new_csrf_token]);
                                 exit();
@@ -7405,8 +7412,9 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         $html .= '<div class="col-6"><div style="'.$lbl_stl.'">Customer Email</div><p style="'.$val_stl.'">'.(empty($customer_info['email']) ? 'No data' : htmlspecialchars($customer_info['email'])).'</p></div></div>';
                         
                         $domain = 'Unknown';
-                        if(!empty($row['redirect_url']) && $row['redirect_url'] !== '--') {
-                            $parsed = parse_url($row['redirect_url'], PHP_URL_HOST);
+                        $url_for_domain = (!empty($row['return_url']) && $row['return_url'] !== '--') ? $row['return_url'] : ((!empty($row['webhook_url']) && $row['webhook_url'] !== '--') ? $row['webhook_url'] : '');
+                        if($url_for_domain) {
+                            $parsed = parse_url($url_for_domain, PHP_URL_HOST);
                             if($parsed) $domain = $parsed;
                         }
                         $html .= '<div class="row"><div class="col-6"><div style="'.$lbl_stl.'">Customer Phone</div><p style="'.$val_stl.'">'.(empty($customer_info['mobile']) ? 'No data' : htmlspecialchars($customer_info['mobile'])).'</p></div>';
@@ -7440,9 +7448,8 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         $copy_js_link = "pp_copy('".$payment_link."', 'Payment Link copied!', this);";
                         $html .= '<div class="row mb-3"><div class="col-12"><div style="'.$lbl_stl.'">Payment Link</div><div class="d-flex align-items-center"><p style="'.$val_stl.'">'.$payment_link.'</p><div class="ms-2" style="cursor:pointer; color:#64748b; display:flex; align-items:center; transition: color 0.2s;" onmouseover="this.style.color=\'#3b82f6\'" onmouseout="this.style.color=\'#64748b\'" onclick="'.$copy_js_link.'" title="Copy">'.$copy_svg.'</div></div></div></div>';
                         
-                        $html .= '<div class="row mb-3"><div class="col-12"><div style="'.$lbl_stl.'">Redirect URL</div><p style="'.$val_stl.'">'.($row['redirect_url'] == '--' ? 'No data' : $row['redirect_url']).'</p></div></div>';
-                        $html .= '<div class="row mb-3"><div class="col-12"><div style="'.$lbl_stl.'">Cancel URL</div><p style="'.$val_stl.'">'.($row['cancel_url'] == '--' ? 'No data' : $row['cancel_url']).'</p></div></div>';
-                        $html .= '<div class="row mb-0"><div class="col-12"><div style="'.$lbl_stl.'">Webhook URL</div><p style="'.$val_stl.'">'.($row['webhook_url'] == '--' ? 'No data' : $row['webhook_url']).'</p></div></div>';
+                        $html .= '<div class="row mb-3"><div class="col-12"><div style="'.$lbl_stl.'">Return URL</div><p style="'.$val_stl.'">'.(empty($row['return_url']) || $row['return_url'] == '--' ? 'No data' : htmlspecialchars($row['return_url'])).'</p></div></div>';
+                        $html .= '<div class="row mb-0"><div class="col-12"><div style="'.$lbl_stl.'">Webhook URL</div><p style="'.$val_stl.'">'.(empty($row['webhook_url']) || $row['webhook_url'] == '--' ? 'No data' : htmlspecialchars($row['webhook_url'])).'</p></div></div>';
                         $html .= '</div></div>';
 
                         // SYSTEM DATA
@@ -8980,7 +8987,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                             $targetVersion = escape_string($_POST['target_version'] ?? '');
                             if ($targetVersion) {
                                 $pdo = connectDatabase();
-                                $pdo->prepare("INSERT INTO `{$db_prefix}update_logs` (`version`, `status`, `log`) VALUES (?, 'Success', 'System successfully updated to latest version.')")->execute([$targetVersion]);
+                                $pdo->prepare("INSERT INTO `{$db_prefix}update_logs` (`version`, `status`, `log`, `created_at`) VALUES (?, 'Success', 'System successfully updated to latest version.', ?)")->execute([$targetVersion, getCurrentDatetime('Y-m-d H:i:s')]);
                             }
                             
                             echo json_encode(['status' => 'success']);
@@ -9884,7 +9891,8 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         $response = json_decode(getData($db_prefix.'device','WHERE otp = :otp', '* FROM', $params),true);
                         if($response['status'] == true){
                             if (!empty($model)) {
-                                $existingNameCheck = json_decode(getData($db_prefix . 'device', "WHERE model = '{$model}' AND name != '' ORDER BY id DESC LIMIT 1"), true);
+                                $d_id = $response['response'][0]['d_id'];
+                                $existingNameCheck = json_decode(getData($db_prefix . 'device', "WHERE model = '{$model}' AND d_id = '{$d_id}' AND name != '' ORDER BY id DESC LIMIT 1"), true);
                                 if ($existingNameCheck['status'] == true && !empty($existingNameCheck['response'])) {
                                     $name = $existingNameCheck['response'][0]['name'];
                                 }
