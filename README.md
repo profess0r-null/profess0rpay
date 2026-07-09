@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="#-installation--deployment">
-    <img src="https://img.shields.io/badge/🚀_Get_Started-000000?style=for-the-badge&logo=rocket&logoColor=white" alt="Get Started">
+    <img src="https://img.shields.io/badge/_Get_Started-000000?style=for-the-badge&logo=rocket&logoColor=white" alt="Get Started">
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge&logo=gnu&logoColor=white" alt="AGPL-3.0 License">
