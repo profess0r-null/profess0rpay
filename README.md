@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/images/logo-light.png" alt="Profess0rPay Logo" width="200">
+  <img src="assets/images/logo-light.png" alt="Profess0rPay Logo" width="400">
 </p>
 <p align="center">
   <strong>The Ultimate Open-Source Self-Hosted Payment Automation Platform</strong><br>
