@@ -820,6 +820,11 @@
 
                                             insertData($db_prefix.'customer', $columns, $values);
                                         }
+                                        
+                                        if (function_exists('addNotification')) {
+                                            $cleanAmount = floatval($amount);
+                                            addNotification("New Payment Initiated", "$cleanAmount $currency | New Order | $payment_id", "info");
+                                        }
 
                                         http_response_code(200);
                                         if ($api_type == "create-payment") {
@@ -1109,6 +1114,25 @@
                     case $path_payment:
                         $paymentID = $param1;
                         $paymentID124123412 = $param1;
+
+                        // ── AJAX: status-check polling (no full page render) ────────────
+                        if (isset($_POST['action-v2']) && $_POST['action-v2'] === 'check-status') {
+                            $ref = escape_string($_POST['ref'] ?? $paymentID);
+                            header('Content-Type: application/json');
+                            if ($ref) {
+                                $params = [':ref' => $ref];
+                                $res = json_decode(getData($db_prefix.'transaction', 'WHERE ref = :ref', '* FROM', $params), true);
+                                if ($res['status'] == true && isset($res['response'][0]['status'])) {
+                                    echo json_encode(['status' => strtolower($res['response'][0]['status'])]);
+                                } else {
+                                    echo json_encode(['status' => 'pending']);
+                                }
+                            } else {
+                                echo json_encode(['status' => 'pending']);
+                            }
+                            exit;
+                        }
+                        // ── END AJAX ────────────────────────────────────────────────────
 
                         $params = [ ':ref' => $paymentID ];
 
@@ -1827,7 +1851,7 @@
                     case $path_admin:
                         $_GET['page_name'] = $param1;
 
-                        if (in_array($param1, ['login', 'forgot', '2fa'])) {
+                        if (in_array($param1, ['login', 'forgot', '2fa', 'notifications_ajax'])) {
                             if(file_exists(__DIR__ . '/pp-content/pp-admin/'.$param1.'.php')){
                                 require __DIR__ . '/pp-content/pp-admin/'.$param1.'.php';
                             }else{
@@ -2142,6 +2166,9 @@
 
                                     if ($job['attempts'] >= $limit && $code !== 200) {
                                         $status = 'canceled';
+                                        if (function_exists('addNotification')) {
+                                            addNotification("Webhook Failed", "Max attempts reached for Webhook ID: " . $job['id'], "error");
+                                        }
                                     }
 
                                     updateData($db_prefix.'webhook_log',['status', 'http_code', 'updated_date'],[$status, $code, getCurrentDatetime('Y-m-d H:i:s')],"id = '".$job['id']."'");

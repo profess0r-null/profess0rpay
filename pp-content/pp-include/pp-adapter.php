@@ -541,6 +541,9 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                 
                                 insertData($db_prefix.'browser_log', $columns, $values);
                                 
+                                if (function_exists('addNotification')) {
+                                    addNotification("Security Alert", "Admin logged in from IP Address: " . $userInfo['ip_address'], "info");
+                                }
                                 echo json_encode(['status' => "true", 'target' => $target, 'session_token' => $cookie, 'csrf_token' => $new_csrf_token]);
                             }else{
                                 echo json_encode(['status' => "false", 'title' => 'Login Failed', 'message' => 'Your account has been suspended. Please contact with your admin.', 'csrf_token' => $new_csrf_token]);
@@ -587,15 +590,30 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                     
                                     insertData($db_prefix.'browser_log', $columns, $values);
                                     
+                                    if (function_exists('addNotification')) {
+                                        addNotification("Security Alert", "Admin logged in from IP Address: " . $userInfo['ip_address'], "info");
+                                    }
                                     echo json_encode(['status' => "true", 'target' => $target, 'session_token' => $cookie, 'csrf_token' => $new_csrf_token]);
                                 }else{
                                     echo json_encode(['status' => "false", 'title' => 'Login Failed', 'message' => 'Your account has been suspended. Please contact with your admin.', 'csrf_token' => $new_csrf_token]);
                                 }
                             }else{
+                                if (!isset($_SESSION['failed_login'])) $_SESSION['failed_login'] = 0;
+                                $_SESSION['failed_login']++;
+                                if ($_SESSION['failed_login'] >= 3) {
+                                    if (function_exists('addNotification')) addNotification("Security Alert", "Multiple failed login attempts for: $email_username", "danger");
+                                    $_SESSION['failed_login'] = 0;
+                                }
                                 echo json_encode(['status' => "false", 'title' => 'Login Failed', 'message' => 'The email or password you entered is incorrect.', 'csrf_token' => $new_csrf_token]);
                             }
                         }
                     }else{
+                        if (!isset($_SESSION['failed_login'])) $_SESSION['failed_login'] = 0;
+                        $_SESSION['failed_login']++;
+                        if ($_SESSION['failed_login'] >= 3) {
+                            if (function_exists('addNotification')) addNotification("Security Alert", "Multiple failed login attempts for: $email_username", "danger");
+                            $_SESSION['failed_login'] = 0;
+                        }
                         echo json_encode(['status' => "false", 'title' => 'Login Failed', 'message' => 'The email or password you entered is incorrect.', 'csrf_token' => $new_csrf_token]);
                     }
                 }
@@ -903,12 +921,17 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                             if($row['cookie'] == $pp_admin){
                                 $isequal = 'matched';
                             }
+                            
+                            $display_ip = $row['ip'];
+                            if ($display_ip === '::1') {
+                                $display_ip = '127.0.0.1';
+                            }
 
                             $response[] = [
                                 "id"   => $row['id'],
                                 "browser"   => $row['browser'],
                                 "device"   => $row['device'],
-                                "ip"     => $row['ip'],
+                                "ip"     => $display_ip,
                                 "status"     => $row['status'],
                                 "isequal"     => $isequal,
                                 "created_date"     => convertUTCtoUserTZ($row['created_date'], ($global_response_brand['response'][0]['timezone'] === '--' || $global_response_brand['response'][0]['timezone'] === '') ? 'Asia/Dhaka' : $global_response_brand['response'][0]['timezone'], "M d, Y h:i A"),
@@ -7111,6 +7134,15 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                             
                                             updateData($db_prefix.'transaction', $columns, $values, $condition);
                                             
+                                            if (function_exists('addNotification')) {
+                                                $transactionRow = $response_brand['response'][0];
+                                                $cleanAmount = floatval($transactionRow['local_net_amount']);
+                                                $gatewayInfo = json_decode(getData($db_prefix.'gateways', 'WHERE id ="'.$transactionRow['gateway_id'].'"'), true);
+                                                $gatewayName = $gatewayInfo['response'][0]['name'] ?? 'Payment';
+                                                $identifier = ($transactionRow['sender'] && $transactionRow['sender'] !== '--') ? $transactionRow['sender'] : $transactionRow['trx_id'];
+                                                addNotification("Payment Successful", "$cleanAmount " . $transactionRow['local_currency'] . " | " . $gatewayName . " | " . $identifier, "success");
+                                            }
+                                            
                                             $response_brand['response'][0]['status'] = 'completed';
                                         }
                                     }
@@ -7198,6 +7230,15 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                             updateData($db_prefix.'transaction', $columns, $values, $condition);
                                             
                                             $response_brand['response'][0]['status'] = 'canceled';
+                                            
+                                            if (function_exists('addNotification')) {
+                                                $transactionRow = $response_brand['response'][0];
+                                                $cleanAmount = floatval($transactionRow['local_net_amount']);
+                                                $gatewayInfo = json_decode(getData($db_prefix.'gateways', 'WHERE id ="'.$transactionRow['gateway_id'].'"'), true);
+                                                $gatewayName = $gatewayInfo['response'][0]['name'] ?? 'Payment';
+                                                $identifier = ($transactionRow['sender'] && $transactionRow['sender'] !== '--') ? $transactionRow['sender'] : $transactionRow['trx_id'];
+                                                addNotification("Payment Cancelled", "$cleanAmount " . $transactionRow['local_currency'] . " | " . $gatewayName . " | " . $identifier, "danger");
+                                            }
                                         }
                                     }
 
@@ -9023,6 +9064,10 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
     }
 
     if(isset($_POST['action-v2'])){
+        // 'check-status' is handled by the payment route in index.php — skip it here
+        if (($_POST['action-v2'] ?? '') === 'check-status') {
+            // Do not handle here; let the router in index.php process it
+        } else {
         $action = escape_string($_POST['action-v2'] ?? '');
 
         if($action == ""){
@@ -9101,6 +9146,11 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         $values = [$invoiceRow['brand_id'], 'invoice', $payment_id, '{ "name": "'.$customer_name.'", "email": "'.$customer_email.'", "mobile": "'.$customer_mobile.'" }', money_sanitize($amount), $currency, $source_info, $metadata, $return_url, $webhook_url, getCurrentDatetime('Y-m-d H:i:s'), getCurrentDatetime('Y-m-d H:i:s')];
 
                         insertData($db_prefix.'transaction', $columns, $values);
+                        
+                        if (function_exists('addNotification')) {
+                            $cleanAmount = floatval($amount);
+                            addNotification("New Payment Initiated", "$cleanAmount $currency | New Order | $payment_id", "info");
+                        }
 
                         echo json_encode(['status' => "true", 'redirect' => $site_url.$path_payment.'/'.$payment_id]);
                     }else{
@@ -9249,6 +9299,11 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         $values = [$paymentRow['brand_id'], 'payment-link', $payment_id, '{ "name": "'.$customer_name.'", "email": "'.$customer_email.'", "mobile": "'.$customer_mobile.'" }', money_sanitize($payment_amount), $currency, $source_info, $metadata, $return_url, getCurrentDatetime('Y-m-d H:i:s'), getCurrentDatetime('Y-m-d H:i:s')];
 
                         insertData($db_prefix.'transaction', $columns, $values);
+                        
+                        if (function_exists('addNotification')) {
+                            $cleanAmount = floatval($payment_amount);
+                            addNotification("New Payment Initiated", "$cleanAmount $currency | New Order | $payment_id", "info");
+                        }
 
                         echo json_encode(['status' => "true", 'redirect' => $site_url.$path_payment.'/'.$payment_id]);
                     }else{
@@ -9289,6 +9344,11 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         $values = [$brandRow['brand_id'], 'payment-link-default', $payment_id, '{ "name": "'.$customer_name.'", "email": "'.$customer_email.'", "mobile": "'.$customer_mobile.'" }', money_sanitize($amount), $currency, getCurrentDatetime('Y-m-d H:i:s'), getCurrentDatetime('Y-m-d H:i:s')];
 
                         insertData($db_prefix.'transaction', $columns, $values);
+                        
+                        if (function_exists('addNotification')) {
+                            $cleanAmount = floatval($amount);
+                            addNotification("New Payment Initiated", "$cleanAmount $currency | New Order | $payment_id", "info");
+                        }
 
                         echo json_encode(['status' => "true", 'redirect' => $site_url.$path_payment.'/'.$payment_id]);
                     }else{
@@ -9416,6 +9476,13 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                             $values = [money_sanitize($totalProcessingFee), money_sanitize($totalDiscount), money_sanitize($convertedAmount), $response_gateway['response'][0]['currency'], $gateway_id, $gateway_info['sender_key'], 'completed', $mobile_number, $trxid, getCurrentDatetime('Y-m-d H:i:s')];
                             $condition = 'id ="'.$response_transaction['response'][0]['id'].'"'; 
                             updateData($db_prefix.'transaction', $columns, $values, $condition);
+                            
+                            if (function_exists('addNotification')) {
+                                $cleanAmount = floatval($convertedAmount);
+                                $methodName = $response_gateway['response'][0]['name'] ?? 'Payment';
+                                $identifier = (isset($mobile_number) && $mobile_number !== '--') ? $mobile_number : $trxid;
+                                addNotification("Payment Successful", "$cleanAmount " . $response_gateway['response'][0]['currency'] . " | " . $methodName . " | " . $identifier, "success");
+                            }
 
                             // Trigger Webhook logic
                             $params = [ ':ref' => $transaction_id, ':status' => 'completed' ];
@@ -9633,6 +9700,13 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                         $columns = ['processing_fee','discount_amount','local_net_amount','local_currency','gateway_id','sender_key','status','sender','trx_id','updated_date'];
                                                         $values  = [money_sanitize($totalProcessingFee), money_sanitize($totalDiscount), money_sanitize($convertedAmount), $response_gateway['response'][0]['currency'], $gateway_id, $gateway_info['sender_key'], 'completed', $mobile_number, $matched_trxid, getCurrentDatetime('Y-m-d H:i:s')];
                                                         updateData($db_prefix.'transaction', $columns, $values, 'id ="'.$response_transaction['response'][0]['id'].'"');
+                                                        
+                                                        if (function_exists('addNotification')) {
+                                                            $cleanAmount = floatval($convertedAmount);
+                                                            $methodName = $response_gateway['response'][0]['name'] ?? 'Payment';
+                                                            $identifier = (isset($mobile_number) && $mobile_number !== '--') ? $mobile_number : $matched_trxid;
+                                                            addNotification("Payment Successful", "$cleanAmount " . $response_gateway['response'][0]['currency'] . " | " . $methodName . " | " . $identifier, "success");
+                                                        }
 
                                                         echo json_encode(['status' => "true", 'title' => 'Payment Verified', 'message' => 'Your payment has been successfully verified.', 'redirect' => $site_url.$path_payment.'/'.$transaction_id]);
                                                     } else {
@@ -9644,10 +9718,24 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                             unset($_SESSION['verify_attempt_'.$txn_id]);
                                                             // No matching SMS — push to pending
                                                             $posted_trxid = trim(escape_string($_POST['trxid'] ?? ''));
+                                                            
+                                                            if ($posted_trxid !== '' && $posted_trxid !== '--') {
+                                                                $dupCheckParams = [':trx_id' => $posted_trxid];
+                                                                $dupCheck = json_decode(getData($db_prefix.'transaction', 'WHERE trx_id = :trx_id AND status IN ("completed", "pending")', '* FROM', $dupCheckParams), true);
+                                                                if ($dupCheck['status'] == true) {
+                                                                    echo json_encode(['status' => "false", 'title' => 'Duplicate Transaction ID', 'message' => 'This Transaction ID has already been used.']);
+                                                                    exit;
+                                                                }
+                                                            }
+                                                            
                                                             $matched_trxid = ($posted_trxid !== '') ? $posted_trxid : '--';
                                                             $columns = ['processing_fee','discount_amount','local_net_amount','local_currency','gateway_id','sender_key','status','sender','trx_id','updated_date'];
                                                             $values  = [money_sanitize($totalProcessingFee), money_sanitize($totalDiscount), money_sanitize($convertedAmount), $response_gateway['response'][0]['currency'], $gateway_id, $gateway_info['sender_key'], 'pending', $mobile_number, $matched_trxid, getCurrentDatetime('Y-m-d H:i:s')];
                                                             updateData($db_prefix.'transaction', $columns, $values, 'id ="'.$txn_id.'"');
+                                                            if (function_exists('addNotification')) {
+                                                                $cleanAmount = floatval($convertedAmount);
+                                                                addNotification("Payment Pending Review", "$cleanAmount " . $response_gateway['response'][0]['currency'] . " | " . $response_gateway['response'][0]['name'] . " | " . $mobile_number, "warning");
+                                                            }
                                                             echo json_encode(['status' => "pending", 'title' => 'Payment Submitted', 'message' => 'Your payment is under review. Please wait for confirmation.', 'redirect' => $site_url.$path_payment.'/'.$transaction_id]);
                                                         }                                                    }
                                                 }
@@ -9704,6 +9792,13 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                             $columns = ['processing_fee','discount_amount','local_net_amount','local_currency','gateway_id','sender_key','status','sender','trx_id','updated_date'];
                                                             $values  = [money_sanitize($totalProcessingFee), money_sanitize($totalDiscount), money_sanitize($convertedAmount), $response_gateway['response'][0]['currency'], $gateway_id, $gateway_info['sender_key'], 'completed', $sender_num, $trxid, getCurrentDatetime('Y-m-d H:i:s')];
                                                             updateData($db_prefix.'transaction', $columns, $values, 'id ="'.$response_transaction['response'][0]['id'].'"');
+                                                            
+                                                            if (function_exists('addNotification')) {
+                                                                $cleanAmount = floatval($convertedAmount);
+                                                                $methodName = $response_gateway['response'][0]['name'] ?? 'Payment';
+                                                                $identifier = (isset($sender_num) && $sender_num !== '--') ? $sender_num : $trxid;
+                                                                addNotification("Payment Successful", "$cleanAmount " . $response_gateway['response'][0]['currency'] . " | " . $methodName . " | " . $identifier, "success");
+                                                            }
 
                                                             echo json_encode(['status' => "true", 'title' => 'Transaction Verified', 'message' => 'The Transaction ID has been successfully verified.', 'redirect' => $site_url.$path_payment.'/'.$transaction_id]);
                                                         } else {
@@ -9717,6 +9812,10 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                                 $columns = ['processing_fee','discount_amount','local_net_amount','local_currency','gateway_id','sender_key','status','trx_id','updated_date'];
                                                                 $values  = [money_sanitize($totalProcessingFee), money_sanitize($totalDiscount), money_sanitize($convertedAmount), $response_gateway['response'][0]['currency'], $gateway_id, $gateway_info['sender_key'], 'pending', $trxid, getCurrentDatetime('Y-m-d H:i:s')];
                                                                 updateData($db_prefix.'transaction', $columns, $values, 'id ="'.$txn_id.'"');
+                                                                if (function_exists('addNotification')) {
+                                                                    $cleanAmount = floatval($convertedAmount);
+                                                                    addNotification("Payment Pending Review", "$cleanAmount " . $response_gateway['response'][0]['currency'] . " | " . $response_gateway['response'][0]['name'] . " | " . $trxid, "warning");
+                                                                }
                                                                 echo json_encode(['status' => "pending", 'title' => 'Transaction Submitted', 'message' => 'Your Transaction ID has been submitted for manual review.', 'redirect' => $site_url.$path_payment.'/'.$transaction_id]);
                                                             }                                                        }
                                                     }
@@ -9743,6 +9842,12 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                             $condition = 'id ="'.$response_transaction['response'][0]['id'].'"'; 
 
                                                             updateData($db_prefix.'transaction', $columns, $values, $condition);
+                                                            
+                                                            if (function_exists('addNotification')) {
+                                                                $methodName = $gateway_info['name'] ?? 'Manual';
+                                                                $cleanAmount = floatval($convertedAmount);
+                                                                addNotification("Payment Pending Review", "$cleanAmount " . $response_gateway['response'][0]['currency'] . " | $methodName | $trxid", "warning");
+                                                            }
 
                                                             $params = [ ':ref' => $transaction_id, ':status' => 'pending' ];
 
@@ -9906,6 +10011,10 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                             $condition = "id = '".$response['response'][0]['id']."'"; 
                             
                             updateData($db_prefix.'device', $columns, $values, $condition);
+                            
+                            if (function_exists('addNotification')) {
+                                addNotification("New Device Added", "Device '$name' ($model) has been successfully connected.", "success");
+                            }
 
                             echo json_encode(['status' => "true", 'token' => $otp_new]);
                         }else{
@@ -10344,6 +10453,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
 
         }
         exit();
+        } // end else (non-check-status actions)
     }
 
     if (isset($_POST['root'])) {
@@ -10397,8 +10507,4 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
             echo json_encode(['status' => 'false', 'message' => 'Invalid request']);
         }
         exit;
-
     }
-
-
-

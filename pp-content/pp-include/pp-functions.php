@@ -2000,6 +2000,13 @@
 
                 updateData($db_prefix.'transaction', $columns, $values, $condition);
 
+                if (function_exists('addNotification')) {
+                    $cleanAmount = floatval($convertedAmount);
+                    $methodName = $response_gateway['response'][0]['name'] ?? 'Payment';
+                    $identifier = (isset($trxid) && $trxid !== '') ? $trxid : $response_transaciton['response'][0]['ref'];
+                    addNotification("Payment Successful", "$cleanAmount " . $response_gateway['response'][0]['currency'] . " | " . $methodName . " | " . $identifier, "success");
+                }
+
                 $params = [ ':ref' => $response_transaciton['response'][0]['ref'], ':status' => 'completed' ];
 
                 $response_transaction = json_decode(getData($db_prefix.'transaction','WHERE ref = :ref AND status = :status ', '* FROM', $params),true);
@@ -4944,4 +4951,13 @@ if (!function_exists('pp_renderFormFields')) {
     }
 }
 
+
+
+    // Notification System Helper Function
+    function addNotification($title, $message, $type = "info") {
+        global $db_prefix;
+        $columns = ["title", "message", "type", "created_at"];
+        $values = [$title, $message, $type, getCurrentDatetime("Y-m-d H:i:s")];
+        return insertData($db_prefix."notifications", $columns, $values);
+    }
 

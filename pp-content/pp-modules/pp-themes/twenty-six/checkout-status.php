@@ -45,23 +45,7 @@
         $support = is_string($data['brand']['support']) ? json_decode($data['brand']['support'], true) : $data['brand']['support'];
     }
 
-    // AJAX status check for polling (no page reload)
-    if (isset($_POST['action-v2']) && $_POST['action-v2'] === 'check-status') {
-        global $db_prefix;
-        $ref = escape_string($_POST['ref'] ?? '');
-        if ($ref) {
-            $params = [':ref' => $ref];
-            $res = json_decode(getData($db_prefix.'transaction', 'WHERE ref = :ref', '* FROM', $params), true);
-            if ($res['status'] == true && isset($res['response'][0]['status'])) {
-                echo json_encode(['status' => strtolower($res['response'][0]['status'])]);
-            } else {
-                echo json_encode(['status' => 'pending']);
-            }
-        } else {
-            echo json_encode(['status' => 'pending']);
-        }
-        exit;
-    }
+    // AJAX status check is handled by the payment route in index.php
 
     // Completed: do NOT auto-redirect, serve the page normally and JS will handle UI update
 
@@ -135,6 +119,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Status - <?php echo $data['brand']['name'];?></title>
+    <link rel="shortcut icon" href="<?php echo $data['brand']['favicon'] ?? ''; ?>">
     <?php echo pp_assets('head'); ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -500,9 +485,11 @@
                         $metadata = is_string($metadata_raw) ? json_decode($metadata_raw, true) : $metadata_raw;
                         $is_temp_link = isset($metadata['is_temporary']) && $metadata['is_temporary'] == 1;
 
-                        $btn_style = 'display: block; width: 100%; text-align: center; padding: 12px; background: ' . $gateway_color . '; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: opacity 0.2s;';
+                        $btn_style = 'width: 100%; text-align: center; padding: 12px; background: ' . $gateway_color . '; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: opacity 0.2s;';
                         if ($status == 'pending') {
-                            $btn_style = 'display: none;';
+                            $btn_style .= ' display: none;';
+                        } else {
+                            $btn_style .= ' display: block;';
                         }
 
                         if (!$is_temp_link) {
@@ -568,6 +555,58 @@
             <?php } ?>
         </div>
     <?php } ?>
+
+        <?php if ($status === 'pending') { ?>
+        <script>
+            let currentStatus = 'pending';
+            const pollUrl = window.location.href.split('?')[0] + window.location.search;
+            const statusPoll = setInterval(() => {
+                const body = new URLSearchParams();
+                body.append('action-v2', 'check-status');
+                body.append('ref', '<?= htmlspecialchars($invoice, ENT_QUOTES) ?>');
+                fetch(pollUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body.toString()
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status && data.status !== currentStatus) {
+                        currentStatus = data.status;
+                        
+                        const titleEl = document.getElementById('status-title');
+                        const descEl = document.getElementById('status-desc');
+                        const boxEl = document.getElementById('status-icon-box');
+                        const badgeEl = document.getElementById('status-badge');
+                        const btnEl = document.getElementById('btn-make-another');
+                        
+                        if (currentStatus === 'completed') {
+                            if(titleEl) { titleEl.innerText = 'Payment Completed'; titleEl.style.color = '#15803d'; }
+                            if(descEl) descEl.innerText = 'Your payment has been successfully approved by the admin.';
+                            if(boxEl) {
+                                boxEl.style.background = '#dcfce7';
+                                boxEl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>';
+                            }
+                            if(badgeEl) { badgeEl.innerText = 'Approved'; badgeEl.style.background = '#dcfce7'; badgeEl.style.color = '#16a34a'; }
+                            if(btnEl) btnEl.style.display = 'block';
+                            clearInterval(statusPoll);
+                        } else if (currentStatus === 'canceled' || currentStatus === 'rejected') {
+                            if(titleEl) { titleEl.innerText = 'Payment Canceled'; titleEl.style.color = '#b91c1c'; }
+                            if(descEl) descEl.innerText = 'Your payment request has been canceled or rejected.';
+                            if(boxEl) {
+                                boxEl.style.background = '#fee2e2';
+                                boxEl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>';
+                            }
+                            if(badgeEl) { badgeEl.innerText = 'Canceled'; badgeEl.style.background = '#fee2e2'; badgeEl.style.color = '#ef4444'; }
+                            if(btnEl) btnEl.style.display = 'block';
+                            clearInterval(statusPoll);
+                        }
+                    }
+                })
+                .catch(e => console.error(e));
+            }, 3000);
+        </script>
+        <?php } ?>
 
     <?php echo pp_assets('footer'); ?>
 </body>

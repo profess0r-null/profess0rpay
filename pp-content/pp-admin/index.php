@@ -210,6 +210,28 @@
             </div>
             <!-- END NAVBAR LOGO -->
             <div class="navbar-nav flex-row order-md-last">
+              <div class="nav-item dropdown d-flex me-3">
+                <a href="#" class="nav-link px-0 position-relative" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" style="margin-right: 8px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon" style="width: 32px; height: 32px;" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" /><path d="M9 17v1a3 3 0 0 0 6 0v-1" /></svg>
+                  <span class="badge bg-red text-white d-none" id="notification-badge" style="position: absolute; top: 4px; right: 0px; border-radius: 50%; font-size: 11px; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold;"></span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card" style="width: 350px; max-width: 100vw;">
+                  <div class="card border-0">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <h3 class="card-title">Notifications</h3>
+                      <div>
+                        <button type="button" class="btn btn-sm btn-danger btn-pill me-2" data-bs-toggle="modal" data-bs-target="#modal-clear-notifications">Clear All</button>
+                        <a href="javascript:void(0)" class="text-muted" data-bs-toggle="tooltip" data-bs-placement="left" title="Mark all as read" onclick="markAllNotificationsRead(event)">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 12l5 5l10 -10" /><path d="M2 12l5 5m5 -5l5 -5" /></svg>
+                        </a>
+                      </div>
+                    </div>
+                    <div class="list-group list-group-flush list-group-hoverable" id="notification-list" style="max-height: 300px; overflow-y: auto;">
+                      <div class="list-group-item text-center">No new notifications</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div class="nav-item dropdown">
                 <a href="#" class="nav-link d-flex lh-1 p-0 px-2" data-bs-toggle="dropdown" aria-label="Open user menu" aria-expanded="false">
                   <span class="avatar avatar-sm" style="background-image: url(https://ui-avatars.com/api/?name=<?php echo getNameChars($global_user_response['response'][0]['full_name'], 2);?>&color=FFFFFF&background=343a40"> </span>
@@ -1098,7 +1120,124 @@
             let nav_id = 'nav-item-' + (cleanPath.split('/')[0] || 'dashboard');
 
             load_content(pageTitle, currentUrl, nav_id);
+
+            // Notification System Fetch
+            fetchNotifications();
+            setInterval(fetchNotifications, 10000);
         });
+
+        function fetchNotifications() {
+            fetch('<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/notifications_ajax?action=get_unread')
+            .then(res => res.json())
+            .then(data => {
+                let badge = document.getElementById('notification-badge');
+                let list = document.getElementById('notification-list');
+                
+                if (data.status && data.data && data.data.length > 0) {
+                    if (data.count > 0) {
+                        badge.classList.remove('d-none');
+                        badge.innerText = data.count > 99 ? '99+' : data.count;
+                    } else {
+                        badge.classList.add('d-none');
+                    }
+                    
+                    let html = '';
+                    data.data.forEach(n => {
+                        let iconSvg = '';
+                        if (n.type === 'success') {
+                            iconSvg = `<div class="bg-green-lt avatar avatar-sm rounded"><svg xmlns="http://www.w3.org/2000/svg" class="icon text-green" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg></div>`;
+                        } else if (n.type === 'warning') {
+                            iconSvg = `<div class="bg-yellow-lt avatar avatar-sm rounded"><svg xmlns="http://www.w3.org/2000/svg" class="icon text-yellow" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg></div>`;
+                        } else if (n.type === 'danger') {
+                            iconSvg = `<div class="bg-red-lt avatar avatar-sm rounded"><svg xmlns="http://www.w3.org/2000/svg" class="icon text-red" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg></div>`;
+                        } else {
+                            iconSvg = `<div class="bg-blue-lt avatar avatar-sm rounded"><svg xmlns="http://www.w3.org/2000/svg" class="icon text-blue" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 18h-7a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v7.5" /><path d="M3 6l9 6l9 -6" /><path d="M15 18h6" /><path d="M18 15l3 3l-3 3" /></svg></div>`;
+                        }
+                        
+                        let actionUrl = '#';
+                        if(n.title === 'Payment Pending Review') actionUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/transaction?status=pending';
+                        else if(n.title === 'Payment Successful' || n.title === 'New Payment Initiated' || n.title === 'Webhook Failed') actionUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/transaction';
+                        else if(n.title === 'Security Alert') actionUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/activities';
+                        else if(n.title === 'Device Offline Alert' || n.title === 'Device Offline') actionUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/devices';
+                        else if(n.title === 'System Update Available Alert' || n.title === 'System Update Available') actionUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/system-update';
+
+                        let unreadBg = (n.is_read == 0) ? 'bg-muted-lt' : '';
+                        let unreadBadge = (n.is_read == 0) ? '<span class="badge bg-red p-1 flex-shrink-0" style="border-radius: 50%;"></span>' : '';
+                        
+                        html += `
+                        <a href="#" onclick="markSingleNotificationRead('${n.id}', '${n.title}', '${actionUrl}')" class="list-group-item list-group-item-action text-decoration-none ${unreadBg}">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    ${iconSvg}
+                                </div>
+                                <div class="col" style="min-width: 0;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="d-flex align-items-center flex-grow-1" style="min-width: 0;">
+                                            <span class="text-body fw-bold text-truncate me-2">${n.title}</span>
+                                            ${unreadBadge}
+                                        </div>
+                                        <span class="text-muted small ms-2 flex-shrink-0">${n.time_formatted}</span>
+                                    </div>
+                                    <div class="d-block text-secondary small text-truncate" style="line-height:1.4;">${n.message}</div>
+                                </div>
+                            </div>
+                        </a>`;
+                    });
+                    list.innerHTML = html;
+                } else {
+                    badge.classList.add('d-none');
+                    list.innerHTML = '<div class="list-group-item text-center text-muted py-4">No new notifications</div>';
+                }
+            });
+        }
+        function markSingleNotificationRead(id, title, url) {
+            fetch('<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/notifications_ajax?action=mark_read&id=' + id)
+            .then(() => fetchNotifications());
+            
+            if (url !== '#') {
+                load_content(title, url, '');
+            }
+        }
+
+        function markAllNotificationsRead(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            fetch('<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/notifications_ajax?action=mark_read&id=all')
+            .then(() => fetchNotifications());
+        }
+        function deleteAllNotifications(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            fetch('<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/notifications_ajax?action=clear_all')
+            .then(() => {
+                fetchNotifications();
+            });
+        }
     </script>
+    <div class="modal modal-blur fade" id="modal-clear-notifications" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="modal-status bg-danger"></div>
+          <div class="modal-body text-center py-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+            <h3>Are you sure?</h3>
+            <div class="text-muted">Do you really want to clear all notifications? What you've done cannot be undone.</div>
+          </div>
+          <div class="modal-footer">
+            <div class="w-100">
+              <div class="row">
+                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">Cancel</a></div>
+                <div class="col"><button class="btn btn-danger w-100" data-bs-dismiss="modal" onclick="deleteAllNotifications(event)">Delete</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 </body>
 </html>

@@ -1,5 +1,5 @@
 <?php
-$zipFile = 'Profess0rPay-v1.2.3.zip';
+$zipFile = 'Profess0rPay-v1.3.zip';
 if (file_exists($zipFile)) {
     unlink($zipFile);
 }
@@ -16,9 +16,15 @@ $exclude = [
     'hotfix.zip',
     'updater_fix.zip',
     'project_recovery_state.md',
+    'implementation_plan.md',
+    'task.md',
+    'walkthrough.md',
     'scratch',
     'testzip',
-    'pp-content/tmp'
+    'pp-content/tmp',
+    'extracted-plugins',
+    'profess0rpay-plugins-src',
+    'chat_history_backup.md'
 ];
 
 $dir = __DIR__;
@@ -48,4 +54,4 @@ foreach ($files as $name => $file) {
 }
 
 $zip->close();
-echo "Profess0rPay-v1.2.3.zip created successfully.";
+echo "Profess0rPay-v1.3.zip created successfully.";

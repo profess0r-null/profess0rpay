@@ -5,11 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-07-10
+### Added
+- Added visual red dot badge for unread notifications in the admin header.
+- Fully rebranded all 6 third-party integration plugins (WordPress, WHMCS, SMM) to Profess0rPay.
+- Implemented a new Gateway API URL field in all plugins to allow dynamic configuration for self-hosted instances.
+
+### Fixed
+- Fixed admin notification JS routing (switched to GET for compatibility).
+- Fixed checkout status polling to automatically update the UI every 3 seconds without a full page refresh.
+- Fixed the "Make Another Payment" button styling which was overwritten during AJAX status updates.
+- Fixed missing favicon in checkout status page to dynamically load the brand's favicon.
+- Fixed notification bell visibility issue on mobile devices.
+
 ## [1.2.3] - 2026-07-09
 ### Added
 - Added domain whitelist security validation for popup checkouts to prevent unauthorized cross-origin payment requests.
 - Added dynamic 'Copy to Clipboard' buttons with toast notifications for Transaction ID and Payment Link fields in the Admin Transaction Details modal.
 - Added 'Force Re-install' capability to the OTA System Updater, allowing admins to re-download and re-install the current version without needing a version bump.
+- Added real-time dynamic AJAX Notification System to the admin dashboard.
+- Added new notification triggers: Payment Success, Admin Security Alert, Device Offline Alert, and System Update Available Alert.
 
 ### Fixed
 - Fixed an API payload bug where popup checkouts failed to capture and save `return_url` in the database.
