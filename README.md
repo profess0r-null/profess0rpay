@@ -130,8 +130,8 @@ This project was built to expand upon open-source payment automation capabilitie
 
 - **v1.2.3** — Patch (Current): SMS Device Fixes, Dynamic Timezones, Webhook Buttons, and Update Confirmations.
 - **v1.0.0** — Stable: Installer, White-label Branding, Admin Panel, Payment Links, REST API.
-- **v1.1** — Planned: WooCommerce Plugin / PHP SDK.
-- **v1.2** — Planned: Docker Support & GitHub Actions (CI).
+- **v1.3** — Planned: WooCommerce Plugin / PHP SDK.
+- **v1.4** — Planned: Docker Support & GitHub Actions (CI).
 - **v2.0** — Planned: Merchant System, New Gateways, Better UI.
 
 ## 🤝 Contributing
