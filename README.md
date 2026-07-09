@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/images/logo.png" alt="Profess0rPay Logo" width="200">
+  <img src="assets/images/logo-light.png" alt="Profess0rPay Logo" width="200">
 </p>
 
 <h1 align="center">Profess0rPay</h1>
