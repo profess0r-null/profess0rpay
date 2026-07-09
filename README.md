@@ -1,9 +1,6 @@
 <p align="center">
   <img src="assets/images/logo-light.png" alt="Profess0rPay Logo" width="200">
 </p>
-
-<h1 align="center">Profess0rPay</h1>
-
 <p align="center">
   <strong>The Ultimate Open-Source Self-Hosted Payment Automation Platform</strong><br>
   Unify payment gateways, wallets, and SMS-based verification into one seamless, white-labeled system you fully control.
