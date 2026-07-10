@@ -9439,29 +9439,53 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                 }
 
                 if(isset($gateway_info) && $gateway_info['gateway_type'] == "automation"){
+                    $verification_method = $options['verification_method'] ?? 'trxid';
+
+                    $sms_validity = get_env('sms_data_validity', $response_transaction['response'][0]['brand_id'], '1');
+                    $validity_condition = "";
+                    $validity_params = [];
+                    if ($sms_validity > 0) {
+                        $validity_time = date('Y-m-d H:i:s', strtotime("-{$sms_validity} hours"));
+                        $validity_condition = " AND created_date >= :validity_time";
+                        $validity_params[':validity_time'] = $validity_time;
+                    }
+
                     $matched_sms = null;
+                    if ($verification_method === 'number_amount') {
+                        if (!empty($mobile_number)) {
+                            $search_number = '%'.$mobile_number.'%';
+                            if($gateway_info['sender_key'] == 'rocket'){
+                                $search_number = '%'.substr($mobile_number, -3).'%';
+                            }
+                            
+                            $params = array_merge([ ':sender_key' => $gateway_info['sender_key'], ':type' => $gateway_info['sender_type'], ':number' => $search_number, ':status' => 'approved' ], $validity_params);
+                            $response_pending_SMSTransaction = json_decode(getData($db_prefix.'sms_data','WHERE sender_key = :sender_key AND type = :type AND number LIKE :number AND status = :status'.$validity_condition.' ORDER BY id DESC', '* FROM', $params), true);
 
-                    // Strategy 1: Match by sender number + amount (if mobile_number is provided)
-                    if (!empty($mobile_number)) {
-                        $search_number = '%'.$mobile_number.'%';
-                        if($gateway_info['sender_key'] == 'rocket'){
-                            $search_number = '%'.substr($mobile_number, -3).'%';
+                            if($response_pending_SMSTransaction['status'] == true && !empty($response_pending_SMSTransaction['response'])){
+                                foreach($response_pending_SMSTransaction['response'] as $sms) {
+                                    if (verifyPaymentTolerance($convertedAmount, $sms['amount'], $response_brand['response'][0]['payment_tolerance'])) {
+                                        $matched_sms = $sms;
+                                        break;
+                                    }
+                                }
+                            }
                         }
+                    } elseif ($verification_method === 'trxid') {
+                        $input_trxid = trim(escape_string($_POST['trxid'] ?? ''));
+                        if (!empty($input_trxid)) {
+                            $params = array_merge([ ':sender_key' => $gateway_info['sender_key'], ':type' => $gateway_info['sender_type'], ':trx_id' => $input_trxid, ':status' => 'approved' ], $validity_params);
+                            $response_sms = json_decode(getData($db_prefix.'sms_data', 'WHERE sender_key = :sender_key AND type = :type AND trx_id = :trx_id AND status = :status'.$validity_condition.' ORDER BY id DESC', '* FROM', $params), true);
 
-                        $params = [ ':sender_key' => $gateway_info['sender_key'], ':type' => $gateway_info['sender_type'], ':number' => $search_number, ':status' => 'approved' ];
-                        $response_pending_SMSTransaction = json_decode(getData($db_prefix.'sms_data','WHERE sender_key = :sender_key AND type = :type AND number LIKE :number AND status = :status', '* FROM', $params), true);
-
-                        if($response_pending_SMSTransaction['status'] == true && !empty($response_pending_SMSTransaction['response'])){
-                            foreach($response_pending_SMSTransaction['response'] as $sms) {
-                                if (verifyPaymentTolerance($convertedAmount, $sms['amount'], $response_brand['response'][0]['payment_tolerance'])) {
-                                    $matched_sms = $sms;
-                                    break;
+                            if ($response_sms['status'] == true && !empty($response_sms['response'])) {
+                                foreach ($response_sms['response'] as $sms) {
+                                    if (verifyPaymentTolerance($convertedAmount, $sms['amount'], $response_brand['response'][0]['payment_tolerance'])) {
+                                        $matched_sms = $sms;
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-
-                    // Strategy 2 (amount-only fallback) removed for security (Amount-Collision Hijacking)
 
                     if ($matched_sms) {
                             // Update SMS to used
