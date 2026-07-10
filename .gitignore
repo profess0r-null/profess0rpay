@@ -16,3 +16,5 @@ find_bracket.php
 # Temporary application files
 pp-content/tmp/*
 !pp-content/tmp/.gitkeep
+
+profess0rpay-plugins/
