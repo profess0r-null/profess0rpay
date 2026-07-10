@@ -504,7 +504,7 @@ body {
         load_dashboard_transaction_statistics();
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(() => {
         load_dashboard_transaction_statistics();
-    });
+    }, 100);
 </script>
