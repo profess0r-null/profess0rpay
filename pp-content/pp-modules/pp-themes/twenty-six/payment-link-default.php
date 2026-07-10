@@ -222,7 +222,7 @@
                 document.querySelector("#payButton").innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>';
 
                 $.ajax({
-                    url: '<?php echo pp_site_address(); ?>',
+                    url: window.location.href,
                     type: 'POST',
                     dataType: 'json',
                     data: formData, 
