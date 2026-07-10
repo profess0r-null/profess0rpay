@@ -417,7 +417,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <p><strong>Security Warning:</strong> For security reasons, please delete the <b>install</b> folder immediately from your server file manager.</p>
                     </div>
 
-                    <a href="../login" class="inline-block px-8 py-3 bg-[#e2136e] hover:bg-[#c90f5f] text-white font-bold rounded-lg transition-colors shadow-lg shadow-pink-200">
+                    <a href="../admin/login" class="inline-block px-8 py-3 bg-[#e2136e] hover:bg-[#c90f5f] text-white font-bold rounded-lg transition-colors shadow-lg shadow-pink-200">
                         Go to Admin Panel (Auto redirecting in <span id="countdown">3</span>s...)
                     </a>
                 </div>
@@ -429,7 +429,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         countdownEl.textContent = timeLeft;
                         if (timeLeft <= 0) {
                             clearInterval(timer);
-                            window.location.href = '../login';
+                            window.location.href = '../admin/login';
                         }
                     }, 1000);
                 </script>
