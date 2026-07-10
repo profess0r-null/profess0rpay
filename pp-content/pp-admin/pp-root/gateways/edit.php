@@ -727,6 +727,9 @@
                         timeout: 6000,
                         top: 70
                     });
+                    
+                    // Redirect back to gateways list
+                    load_content('Gateways', '<?php echo $site_url.$path_admin ?>/gateways', 'nav-item-gateways');
                 } else {
                     createToast({
                         title: response.title,

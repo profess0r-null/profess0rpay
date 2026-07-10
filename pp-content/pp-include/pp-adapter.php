@@ -8006,7 +8006,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
 
                                 insertData($db_prefix.'gateways', $columns, $values);
 
-                                echo json_encode(['status' => 'true', 'title' => 'Gateway Created', 'message' => 'The gateway has been created successfully.', 'csrf_token' => $new_csrf_token]);
+                                echo json_encode(['status' => 'true', 'title' => 'Gateway Created', 'message' => 'The gateway has been created successfully.', 'csrf_token' => $new_csrf_token, 'gateway_id' => $gateway_id]);
                             
                             }
                         }

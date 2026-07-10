@@ -693,7 +693,11 @@
                             top: 70
                         });
 
-                        load_data_list(1);
+                        if (response.gateway_id) {
+                            load_content('Edit Gateway', '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/gateways/edit?ref=' + response.gateway_id, 'nav-item-gateways');
+                        } else {
+                            load_data_list(1);
+                        }
                     } else {
                         createToast({
                             title: response.title,
