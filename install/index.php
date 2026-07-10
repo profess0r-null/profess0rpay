@@ -155,7 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $default_logo = $dynamic_site_url . 'assets/images/logo-light.png';
 
                     $pdo->exec("UPDATE pp_brands SET name='Profess0rPay', favicon='$default_favicon', logo='$default_logo', redirect_url='', support_email_address='--', support_phone_number='--', support_website='--', whatsapp_number='--', telegram='--', facebook_messenger='--', facebook_page='--'");
-                    $pdo->exec("UPDATE pp_env SET value='$default_favicon' WHERE option_name = 'payment-link-default-logo'");
+                    $default_link_logo = $dynamic_site_url . 'assets/images/default_link.png';
+                    $pdo->exec("UPDATE pp_env SET value='$default_link_logo' WHERE option_name = 'payment-link-default-logo'");
                     $pdo->exec("UPDATE pp_env SET value='--' WHERE option_name IN ('last-auto-update-check', 'last-update-version-name', 'last-update-version')");
                     
                 } else {

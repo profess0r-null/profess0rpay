@@ -138,8 +138,26 @@ body {
             $res = json_decode(getData($db_prefix.'transaction', ' WHERE brand_id = "'.$global_response_brand['response'][0]['brand_id'].'" AND status = "pending"'), true);
             if($res['status'] == true) { $pending_payments = count($res['response']); }
 
-            // Today's Revenue (local_net_amount for completed today)
-            $res = json_decode(getData($db_prefix.'transaction', ' WHERE brand_id = "'.$global_response_brand['response'][0]['brand_id'].'" AND status = "completed" AND DATE(created_date) = CURDATE()'), true);
+            // Today's Revenue (local_net_amount for completed today, accounting for timezone)
+            $tz_string = ($global_response_brand['response'][0]['timezone'] === '--' || empty($global_response_brand['response'][0]['timezone'])) ? 'Asia/Dhaka' : $global_response_brand['response'][0]['timezone'];
+            
+            try {
+                $start_of_day_tz = new DateTime('today', new DateTimeZone($tz_string));
+                $start_of_day_utc = clone $start_of_day_tz;
+                $start_of_day_utc->setTimezone(new DateTimeZone('UTC'));
+                $start_utc_str = $start_of_day_utc->format('Y-m-d H:i:s');
+                
+                $end_of_day_tz = new DateTime('tomorrow', new DateTimeZone($tz_string));
+                $end_of_day_utc = clone $end_of_day_tz;
+                $end_of_day_utc->setTimezone(new DateTimeZone('UTC'));
+                $end_utc_str = $end_of_day_utc->format('Y-m-d H:i:s');
+            } catch (Exception $e) {
+                // fallback if timezone string is invalid
+                $start_utc_str = date('Y-m-d 00:00:00');
+                $end_utc_str = date('Y-m-d 23:59:59');
+            }
+
+            $res = json_decode(getData($db_prefix.'transaction', ' WHERE brand_id = "'.$global_response_brand['response'][0]['brand_id'].'" AND status = "completed" AND created_date >= "'.$start_utc_str.'" AND created_date < "'.$end_utc_str.'"'), true);
             if($res['status'] == true) {
                 foreach($res['response'] as $row) {
                     $todays_revenue += (float)$row['amount']; // or local_net_amount based on logic
@@ -362,8 +380,8 @@ body {
                         <h3 class="card-title fw-bold m-0" style="font-size: 18px;">Revenue Overview</h3>
                         <div>
                             <select class="form-select form-select-sm border-0 bg-light text-secondary fw-medium" id="dateFilter-transaction-statistics" onchange="handleFilterChangeTransactionStatistics(this.value)" style="border-radius: 8px;">
-                                <option value="this_month">This month</option>
-                                <option value="this_year" selected>This year</option>
+                                <option value="this_month" selected>This month</option>
+                                <option value="this_year">This year</option>
                             </select>
                         </div>
                     </div>
@@ -413,6 +431,7 @@ body {
     }
 
     // Chart logic
+    let chartTransactionStatistics;
     function load_dashboard_transaction_statistics(){
         var csrf_token_default = $('input[name="csrf_token_default"]').val();
         var date = $('#dateFilter-transaction-statistics').val();

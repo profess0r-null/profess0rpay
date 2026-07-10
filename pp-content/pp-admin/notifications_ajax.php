@@ -20,23 +20,42 @@
         $devices = json_decode(getData($db_prefix.'device', ''), true);
         if (isset($devices['status']) && $devices['status'] == true) {
             foreach ($devices['response'] as $device) {
-                $last_active = strtotime($device['updated_date']);
+                $device_name = (string)($device['name'] ?? '');
+                $device_id = (string)($device['id'] ?? '');
+                $last_active = strtotime((string)($device['updated_date'] ?? ''));
+                if ($last_active === false || $last_active <= 0) { $last_active = time(); }
                 $now = time();
+                
+                $lockFile = __DIR__ . '/../tmp/offline_alert_' . $device_id . '.txt';
                 if (($now - $last_active) > 3600) {
-                    // check if we already notified recently (in the last 24 hours) for this device
-                    $recentAlerts = json_decode(getData($db_prefix.'notifications', "WHERE type='warning' AND title='Device Offline' AND message LIKE '%" . addslashes($device['device_name']) . "%' AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)"), true);
-                    if (isset($recentAlerts['status']) && $recentAlerts['status'] == false && function_exists('addNotification')) {
-                        addNotification("Device Offline", "Device '" . $device['device_name'] . "' has been offline for over an hour. Check battery or internet!", "warning");
+                    if (!file_exists(__DIR__ . '/../tmp')) {
+                        @mkdir(__DIR__ . '/../tmp', 0777, true);
+                    }
+                    $last_alert = @file_get_contents($lockFile);
+                    if (!$last_alert || ($now - (int)$last_alert) > 86400) { // 24 hours
+                        if (function_exists('addNotification')) {
+                            addNotification("Device Offline", "Device '" . $device_name . "' has been offline for over an hour. Check battery or internet!", "warning");
+                            @file_put_contents($lockFile, $now);
+                        }
+                    }
+                } else {
+                    if (file_exists($lockFile)) {
+                        @unlink($lockFile);
                     }
                 }
             }
         }
 
         // System Update Check
-        $updateLockFile = realpath(__DIR__ . '/../../pp-content/tmp') . '/last_update_check.txt';
-        if (!file_exists($updateLockFile) || (time() - filemtime($updateLockFile)) > 43200) {
+        $updateLockFile = __DIR__ . '/../tmp/last_update_check.txt';
+        if (!file_exists(__DIR__ . '/../tmp')) {
+            @mkdir(__DIR__ . '/../tmp', 0777, true);
+        }
+        $mtime = @filemtime($updateLockFile);
+        if ($mtime === false) { $mtime = 0; }
+        if (!file_exists($updateLockFile) || (time() - $mtime) > 43200) {
             @file_put_contents($updateLockFile, time());
-            $updaterClass = realpath(__DIR__ . '/../../pp-include/class-updater.php');
+            $updaterClass = __DIR__ . '/../pp-include/class-updater.php';
             if ($updaterClass && file_exists($updaterClass)) {
                 require_once $updaterClass;
                 try {
@@ -64,9 +83,9 @@
         $notifications = json_decode(getData($db_prefix.'notifications', 'ORDER BY id DESC LIMIT 10'), true);
         
         $unread_count_data = json_decode(getData($db_prefix.'notifications', 'WHERE is_read = 0'), true);
-        $unread_count = ($unread_count_data['status'] == true) ? count($unread_count_data['response']) : 0;
+        $unread_count = (isset($unread_count_data['status']) && $unread_count_data['status'] == true && isset($unread_count_data['response']) && is_array($unread_count_data['response'])) ? count($unread_count_data['response']) : 0;
         
-        if ($notifications['status'] == true) {
+        if (isset($notifications['status']) && $notifications['status'] == true && isset($notifications['response']) && is_array($notifications['response'])) {
             $tz = (isset($global_response_brand['response'][0]['timezone']) && $global_response_brand['response'][0]['timezone'] !== '--' && $global_response_brand['response'][0]['timezone'] !== '') ? $global_response_brand['response'][0]['timezone'] : 'Asia/Dhaka';
             foreach ($notifications['response'] as &$n) {
                 if (function_exists('convertUTCtoUserTZ')) {

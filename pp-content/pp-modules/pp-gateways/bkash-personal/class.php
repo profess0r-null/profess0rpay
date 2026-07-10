@@ -5,7 +5,7 @@
         {
             return [
                 'title'       => 'Bkash Personal',
-                'logo'        => 'assets/images/bkash.png',
+                'logo'        => 'assets/logo.jpg',
                 'currency'        => 'BDT',
                 'tab'        => 'mfs',
 

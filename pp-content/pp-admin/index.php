@@ -189,6 +189,23 @@
                 margin-left: 325px;
             }
         }
+        @media (max-width: 767px) {
+            .mobile-center-logo {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            .notify-dropdown-mobile {
+                position: fixed !important;
+                top: 60px !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100vw !important;
+                border-radius: 0;
+                transform: none !important;
+                margin: 0 !important;
+            }
+        }
     </style>
 </head>
 <body class="layout-fluid" cz-shortcut-listen="true">
@@ -203,25 +220,29 @@
 
             <!-- END NAVBAR TOGGLER -->
             <!-- BEGIN NAVBAR LOGO -->
-            <div class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+            <div class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3 mobile-center-logo">
               <a href="javascript:void(0)" aria-label="Tabler">
                   <img src="<?= $professorpay_logo_light ?? '' ?>" alt="" style="height: 32px;" onclick="load_content('Dashboard','<?php echo $site_url.$path_admin ?>/dashboard','nav-menu-dashboard')">
               </a>
             </div>
             <!-- END NAVBAR LOGO -->
             <div class="navbar-nav flex-row order-md-last">
-              <div class="nav-item dropdown d-flex me-3">
-                <a href="#" class="nav-link px-0 position-relative" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" style="margin-right: 8px;">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="icon" style="width: 32px; height: 32px;" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" /><path d="M9 17v1a3 3 0 0 0 6 0v-1" /></svg>
-                  <span class="badge bg-red text-white d-none" id="notification-badge" style="position: absolute; top: 4px; right: 0px; border-radius: 50%; font-size: 11px; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold;"></span>
+              <div class="nav-item dropdown d-flex me-1 me-md-3">
+                <style>
+                  .notification-bell-icon { width: 24px; height: 24px; }
+                  @media (min-width: 768px) { .notification-bell-icon { width: 29px; height: 29px; } }
+                </style>
+                <a href="#" class="nav-link px-0 position-relative" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications" style="margin-right: 4px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon notification-bell-icon" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" /><path d="M9 17v1a3 3 0 0 0 6 0v-1" /></svg>
+                  <span class="badge bg-red text-white d-none" id="notification-badge" style="position: absolute; top: 2px; right: 0px; border-radius: 50%; font-size: 10px; padding: 0; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-weight: bold;"></span>
                 </a>
-                <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card" style="width: 350px; max-width: 100vw;">
+                <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card notify-dropdown-mobile" style="width: 350px; max-width: 100vw;">
                   <div class="card border-0">
                     <div class="card-header d-flex justify-content-between align-items-center">
                       <h3 class="card-title">Notifications</h3>
                       <div>
                         <button type="button" class="btn btn-sm btn-danger btn-pill me-2" data-bs-toggle="modal" data-bs-target="#modal-clear-notifications">Clear All</button>
-                        <a href="javascript:void(0)" class="text-muted" data-bs-toggle="tooltip" data-bs-placement="left" title="Mark all as read" onclick="markAllNotificationsRead(event)">
+                        <a href="javascript:void(0)" class="text-muted" onclick="markAllNotificationsRead(event)">
                           <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 12l5 5l10 -10" /><path d="M2 12l5 5m5 -5l5 -5" /></svg>
                         </a>
                       </div>
@@ -1128,8 +1149,15 @@
 
         function fetchNotifications() {
             fetch('<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/notifications_ajax?action=get_unread')
-            .then(res => res.json())
-            .then(data => {
+            .then(res => res.text())
+            .then(text => {
+                let data = {status: false, count: 0, data: []};
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error("Notifications Parse Error. Server Response:", text);
+                }
+                
                 let badge = document.getElementById('notification-badge');
                 let list = document.getElementById('notification-list');
                 
@@ -1141,6 +1169,13 @@
                         badge.classList.add('d-none');
                     }
                     
+                    data.data.sort((a, b) => {
+                        if (a.is_read != b.is_read) {
+                            return a.is_read - b.is_read;
+                        }
+                        return parseInt(b.id) - parseInt(a.id);
+                    });
+
                     let html = '';
                     data.data.forEach(n => {
                         let iconSvg = '';
@@ -1178,7 +1213,7 @@
                                         </div>
                                         <span class="text-muted small ms-2 flex-shrink-0">${n.time_formatted}</span>
                                     </div>
-                                    <div class="d-block text-secondary small text-truncate" style="line-height:1.4;">${n.message}</div>
+                                    <div class="d-block text-secondary small" style="line-height:1.4; word-wrap:break-word; white-space:normal;">${n.message}</div>
                                 </div>
                             </div>
                         </a>`;
@@ -1203,7 +1238,17 @@
             if (e) {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // Hide tooltip properly
+                let tooltipEl = e.currentTarget;
+                if (tooltipEl && typeof bootstrap !== 'undefined') {
+                    let tooltip = bootstrap.Tooltip.getInstance(tooltipEl);
+                    if (tooltip) tooltip.hide();
+                }
             }
+            // Fallback to clear any orphaned tooltips
+            document.querySelectorAll('.tooltip').forEach(t => t.remove());
+
             fetch('<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/notifications_ajax?action=mark_read&id=all')
             .then(() => fetchNotifications());
         }

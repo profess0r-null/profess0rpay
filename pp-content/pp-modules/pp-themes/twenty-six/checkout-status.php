@@ -101,7 +101,7 @@
     }
     $currency = $data['transaction']['currency'] ?? 'BDT';
     $amountStr = $amount;
-    if($currency == 'BDT') $amountStr = '৳'.$amount;
+    if($currency == 'BDT') $amountStr = '<span style="margin-right: 3px; font-weight: 500 !important; font-size: 24px !important;">৳</span>'.$amount;
     else $amountStr = $amount.' '.$currency;
 
     $shopName = htmlspecialchars($data['brand']['name']);
@@ -261,11 +261,12 @@
         .zini-shop-icon { width: 44px; height: 44px; border-radius: 50%; background: <?= $cartBg ?>; color: <?= $cartColor ?>; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .zini-shop-name { font-size: 18px; font-weight: 500; color: #1f2937; line-height: 1.2; font-family: 'Anek Bangla', 'Inter', sans-serif; }
         .zini-shop-inv { font-size: 10px; color: #9ca3af; opacity: 0.95; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+        .zini-inv-text { display: inline-block; vertical-align: middle; word-break: break-all; max-width: 250px; }
         .zini-total-amount { 
             font-size: 24px; 
             font-weight: 500; 
             color: #2f2f2f; 
-            font-family: 'Anek Bangla', sans-serif;
+            font-family: 'Inter', 'Anek Bangla', sans-serif !important;
             letter-spacing: -0.025em;
             margin-left: 16px;
             flex-shrink: 0;
@@ -356,13 +357,13 @@
                         <div class="zini-shop-inv" style="display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0;">
                             <span style="display: flex; align-items: center; gap: 4px; min-width: 0; flex: 1;">
                                 <span style="white-space: nowrap; flex-shrink: 0;">Inv:</span>
-                                <span style="display: inline-block; min-width: 0; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom;"><?= $invoice ?></span>
+                                <span class="zini-inv-text"><?= $invoice ?></span>
                             </span>
                             <svg onclick="pp_copy('<?= $invoice ?>', 'Invoice Copied!', this)" style="cursor: pointer; flex-shrink: 0; color: <?= $gateway_color ?>; transform: translateY(-1px);" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="11px" width="11px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
                         </div>
                     </div>
                 </div>
-                <div class="zini-total-amount">
+                <div class="zini-total-amount" style="font-family: 'Inter', sans-serif !important; font-size: 24px !important; font-weight: 600 !important;">
                     <?= $amountStr ?>
                 </div>
             </div>
@@ -495,6 +496,12 @@
                         if (!$is_temp_link) {
                     ?>
                     <a href="<?= $another_payment_url ?>" id="btn-make-another" style="<?= $btn_style ?>"><?= $btn_text ?></a>
+                    <?php if (in_array($status, ['completed', 'pending'])) { ?>
+                    <a href="javascript:void(0)" onclick="downloadReceiptPNG()" style="width: 100%; text-align: center; padding: 12px; background: rgba(0,0,0,0.05); color: #111827; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: opacity 0.2s; border: 1px solid #e5e7eb; display: block; margin-top: 10px;">
+                        <svg style="margin-right: 5px; transform: translateY(-1px);" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
+                        Download Receipt (PNG)
+                    </a>
+                    <?php } ?>
                     <?php if(($status == 'completed' || $status == 'pending') && $has_return_url): ?>
                     <div style="background:linear-gradient(145deg, #f8fafc, #f1f5f9); border:1px solid #e2e8f0; border-radius:10px; padding:16px; text-align:left; margin-top:10px; box-shadow:inset 0 2px 4px rgba(255,255,255,0.5);">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -553,7 +560,8 @@
             <?php if($redirect_url) { ?>
                 <a href="<?= $redirect_url ?>" style="display: inline-block; background: #e2136e; color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500;">Return to Merchant</a>
             <?php } ?>
-        </div>
+        
+
     <?php } ?>
 
         <?php if ($status === 'pending') { ?>
@@ -607,6 +615,84 @@
             }, 3000);
         </script>
         <?php } ?>
+
+    <?php if (in_array($status, ['completed', 'pending'])) {
+        $r_slug = strtolower($gateway_slug);
+        $r_logo = '';
+        if (strpos($r_slug, 'bkash') !== false) $r_logo = pp_site_address() . 'assets/images/bkash.png';
+        elseif (strpos($r_slug, 'nagad') !== false) $r_logo = pp_site_address() . 'assets/images/nagad.png';
+        elseif (strpos($r_slug, 'rocket') !== false) $r_logo = pp_site_address() . 'assets/images/rocket.png';
+        elseif (strpos($r_slug, 'upay') !== false) $r_logo = pp_site_address() . 'assets/images/upay_logo.svg';
+        elseif (strpos($r_slug, 'binance') !== false) $r_logo = pp_site_address() . 'assets/images/binance.svg'; // If it exists later
+
+        $timezone = $response_brand['response'][0]['timezone'] ?? 'Asia/Dhaka';
+        date_default_timezone_set($timezone);
+
+        $receiptData = [
+            'amount' => $amount,
+            'currency' => $currency,
+            'trxid' => empty($trx_id) ? '--' : $trx_id,
+            'date' => date('d M Y', strtotime($data['transaction']['created_at'] ?? 'now')),
+            'time' => date('h:i A', strtotime($data['transaction']['created_at'] ?? 'now')),
+            'method' => ucwords(trim(str_replace(['-', 'personal', 'merchant', 'agent'], [' ', '', '', ''], $gateway_slug))),
+            'method_logo' => $r_logo,
+            'sender' => $response_transaction_temp['response'][0]['sender'] ?? '--',
+            'merchant' => $shopName,
+            'status' => ucfirst($status),
+            'fee' => '0.00'
+        ];
+        include __DIR__ . '/../../../pp-template/receipt-template.php';
+    ?>
+    <script data-cfasync="false">
+        window.downloadReceiptPNG = function() {
+            const doCapture = () => {
+                const container = document.getElementById("pp-premium-receipt-container");
+                const el = document.getElementById("pp-premium-receipt");
+                if (!el) {
+                    alert("Receipt generation failed! Please ensure you uploaded \'pp-template/receipt-template.php\' correctly.");
+                    return;
+                }
+                
+                // Temporarily make it visible but fixed out of viewport for html2canvas
+                container.style.opacity = "1";
+                container.style.zIndex = "9999";
+                
+                html2canvas(el, {
+                    backgroundColor: null,
+                    useCORS: true,
+                    scale: window.devicePixelRatio || 2, // High DPI support
+                    logging: false
+                }).then(canvas => {
+                    // Hide it again
+                    container.style.opacity = "0";
+                    container.style.zIndex = "-1";
+                    
+                    let link = document.createElement("a");
+                    link.download = "Profess0rPay_Receipt_<?= htmlspecialchars($trx_id) ?>.png";
+                    link.href = canvas.toDataURL("image/png");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }).catch(err => {
+                    container.style.opacity = "0";
+                    container.style.zIndex = "-1";
+                    console.error("Receipt error:", err);
+                    alert("Failed to generate receipt. Please try again.");
+                });
+            };
+
+            if (typeof html2canvas === "undefined") {
+                const script = document.createElement("script");
+                script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+                script.onload = doCapture;
+                script.onerror = () => alert("Failed to load receipt generator.");
+                document.head.appendChild(script);
+            } else {
+                doCapture();
+            }
+        };
+    </script>
+    <?php } ?>
 
     <?php echo pp_assets('footer'); ?>
 </body>

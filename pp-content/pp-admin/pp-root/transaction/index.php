@@ -702,6 +702,7 @@
 
             const type = this.dataset.type;
 
+            load_data_list(1);
         });
     });
 

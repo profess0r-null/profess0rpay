@@ -3170,6 +3170,7 @@
                     font-size: 15px;
                     line-height: 1.4;
                     font-weight: 700;
+                    word-wrap: break-word;
                 }
                 .zini-step1-terms a {
                     text-decoration: underline;
@@ -3211,7 +3212,8 @@
                 .zini-shop-name { font-size: 15px; font-weight: 600; color: #1e293b; line-height: 1.2; }
                 .zini-shop-inv { font-size: 11px; color: #64748b; display: flex; align-items: center; gap: 4px; margin-top: 3px; }
                 .zini-shop-inv span { display: inline-block; vertical-align: middle; word-break: break-all; max-width: 250px; }
-                .zini-total-amount { font-size: 26px; font-weight: 600; color: #0f172a; white-space: nowrap; }
+                .zini-inv-text { display: inline-block; vertical-align: middle; word-break: break-all; max-width: 250px; }
+                .zini-total-amount { font-size: 26px; font-weight: 600; color: #0f172a; white-space: nowrap; font-family: "Inter", "Anek Bangla", sans-serif !important; }
 
                 /* Desktop Sizes for Logo & Merchant Section */
                 @media (min-width: 521px) {
@@ -3222,6 +3224,7 @@
                     .zini-shop-name { font-size: 18px; }
                     .zini-shop-inv { font-size: 13px; margin-top: 5px; }
                     .zini-total-amount { font-size: 32px; }
+                    .zini-inv-text { max-width: 300px; }
                 }
 
                 /* ===== NUMBER BOX ===== */
@@ -3289,7 +3292,7 @@
                 .zini-step1-terms a { color: #fff; text-decoration: underline; font-weight: 600; }
 
                 /* ===== MISC ===== */
-                .zini-form input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; background: #f9f9f9; color: #333; border-radius: 8px; outline: none; text-align: center; font-size: 15px; margin-bottom: 12px; font-family: "Anek Bangla", sans-serif; box-sizing: border-box; }
+                .zini-form input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; background: #f9f9f9; color: #333; border-radius: 8px; outline: none; text-align: center; font-size: 15px; margin-bottom: 12px; font-family: "Roboto", "Inter", sans-serif !important; font-weight: 500; letter-spacing: 0.5px; box-sizing: border-box; }
                 .zini-form input:focus { border-color: '.$primaryColor.'; background: #fff; }
                 .zini-footer-contact { text-align: center; margin-top: 8px; font-size: 13px; color: '.$primaryColor.'; font-weight: 500; display: flex; justify-content: center; align-items: center; gap: 6px; }
                 .zini-footer-copyright { text-align: center; margin-top: 2px; margin-bottom: 0; font-size: 11px; color: #aaa; }
@@ -3670,7 +3673,7 @@
                                 <div class="zini-shop-inv" style="display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0;">
                                     <span style="display: flex; align-items: center; gap: 4px; min-width: 0; flex: 1;">
                                         <span style="white-space: nowrap; flex-shrink: 0;">Inv:</span>
-                                        <span style="display: inline-block; min-width: 0; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom;">'.$invoice.'</span>
+                                        <span class="zini-inv-text">'.$invoice.'</span>
                                     </span>
                                     <span style="cursor:pointer; color:'.$primaryColor.'; flex-shrink: 0; display: inline-flex; align-items: center; transform: translateY(-1.5px);" onclick="pp_copy(\''.$invoice.'\', \'Invoice Copied!\', this)">
                                         <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="11px" width="11px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>
@@ -3678,8 +3681,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="zini-total-amount">
-                            <span style="margin-right: 3px;">৳</span>'.(floor((float)money_round($data['transaction']['local_net_amount'], 2)) == (float)money_round($data['transaction']['local_net_amount'], 2) ? number_format((float)money_round($data['transaction']['local_net_amount'], 2), 0, '.', '') : money_round($data['transaction']['local_net_amount'], 2)).'
+                        <div class="zini-total-amount" style="font-family: \'Inter\', sans-serif !important; font-size: 28px !important; font-weight: 600 !important;">
+                            <span style="margin-right: 3px; font-weight: 500 !important; font-size: 24px !important;">৳</span>'.(floor((float)money_round($data['transaction']['local_net_amount'], 2)) == (float)money_round($data['transaction']['local_net_amount'], 2) ? number_format((float)money_round($data['transaction']['local_net_amount'], 2), 0, '.', '') : money_round($data['transaction']['local_net_amount'], 2)).'
                         </div>
                     </div>
                     ';
@@ -3700,7 +3703,7 @@
                             ' : '
                             <div class="zini-step1-title">Your '.$step2appEn.' Personal Number</div>
                             ').'
-                            <input type="text" id="sender_mobile_input" class="zini-step1-input" placeholder="e.g 01XXXXXXXXX" autocomplete="off" maxlength="'.$mobileLength.'">
+                            <input type="text" id="sender_mobile_input" class="zini-step1-input" placeholder="e.g 01XXXXXXXXX" autocomplete="off">
                             '.($upayBrandedHeader ? '
                             <div class="zini-step1-terms" style="color: #33475F;">By clicking on Confirm, you are agreeing<br>to the <a href="#" style="color: #024ca1; text-decoration: underline;">terms & conditions</a></div>
                             ' : '
@@ -3960,6 +3963,34 @@
                 }
 
                 // Add the JS logic
+                $r_slug = strtolower($slug ?? '');
+                $r_logo = '';
+                if (strpos($r_slug, 'bkash') !== false) $r_logo = pp_site_address() . 'assets/images/bkash.png';
+                elseif (strpos($r_slug, 'nagad') !== false) $r_logo = pp_site_address() . 'assets/images/nagad.png';
+                elseif (strpos($r_slug, 'rocket') !== false) $r_logo = pp_site_address() . 'assets/images/rocket.png';
+                elseif (strpos($r_slug, 'upay') !== false) $r_logo = pp_site_address() . 'assets/images/upay_logo.svg';
+
+                $timezone = $response_brand['response'][0]['timezone'] ?? 'Asia/Dhaka';
+                date_default_timezone_set($timezone);
+
+                $receiptData = [
+                    'amount' => money_round($data['transaction']['local_net_amount'], 2),
+                    'currency' => $data['transaction']['currency'] ?? 'BDT',
+                    'trxid' => '--', // Pending status doesn't have TrxID yet
+                    'date' => date('d M Y', strtotime($data['transaction']['created_at'] ?? 'now')),
+                    'time' => date('h:i A', strtotime($data['transaction']['created_at'] ?? 'now')),
+                    'method' => ucwords(trim(str_replace(['-', 'personal', 'merchant', 'agent'], [' ', '', '', ''], $r_slug))),
+                    'method_logo' => $r_logo,
+                    'sender' => $data['transaction']['customer_phone'] ?? '--',
+                    'merchant' => $shopName,
+                    'status' => 'Pending',
+                    'fee' => '0.00'
+                ];
+                
+                ob_start();
+                include __DIR__ . '/../pp-template/receipt-template.php';
+                echo ob_get_clean();
+                
                 echo '
                 <script data-cfasync="false">
                     function showQrModal() {
@@ -3972,24 +4003,40 @@
 
                     window.downloadReceiptImage = function() {
                         const doCapture = () => {
-                            const el = document.getElementById("zini-step-success");
-                            const btn = el.querySelector("a[onclick=\'downloadReceiptImage()\']");
-                            if (btn) btn.style.display = "none";
+                            const container = document.getElementById("pp-premium-receipt-container");
+                            const el = document.getElementById("pp-premium-receipt");
+                            if (!el) {
+                                alert("Receipt generation failed! Please ensure you uploaded \'pp-template/receipt-template.php\' correctly.");
+                                return;
+                            }
+                            
+                            const btn = document.querySelector("a[onclick=\'downloadReceiptImage()\']");
+                            const originalText = btn ? btn.innerHTML : "";
+                            if (btn) btn.innerHTML = "Generating...";
+                            
+                            container.style.opacity = "1";
+                            container.style.zIndex = "9999";
                             
                             html2canvas(el, {
-                                backgroundColor: "'.($primaryColor ?? '#e63946').'",
+                                backgroundColor: null,
                                 useCORS: true,
-                                scale: 2
+                                scale: window.devicePixelRatio || 2,
+                                logging: false
                             }).then(canvas => {
-                                if (btn) btn.style.display = "inline-block";
+                                container.style.opacity = "0";
+                                container.style.zIndex = "-1";
+                                if (btn) btn.innerHTML = originalText;
+                                
                                 let link = document.createElement("a");
-                                link.download = "receipt-'.$data['transaction']['ref'].'.png";
+                                link.download = "Profess0rPay_Receipt_'.$data['transaction']['ref'].'.png";
                                 link.href = canvas.toDataURL("image/png");
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
                             }).catch(err => {
-                                if (btn) btn.style.display = "inline-block";
+                                container.style.opacity = "0";
+                                container.style.zIndex = "-1";
+                                if (btn) btn.innerHTML = originalText;
                                 console.error("Receipt error:", err);
                                 alert("Failed to generate receipt. Please try again.");
                             });
@@ -3999,7 +4046,7 @@
                             const script = document.createElement("script");
                             script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
                             script.onload = doCapture;
-                            script.onerror = () => alert("Failed to load receipt generator. Please try again.");
+                            script.onerror = () => alert("Failed to load receipt generator.");
                             document.head.appendChild(script);
                         } else {
                             doCapture();
@@ -4029,8 +4076,19 @@
                         // Step 1 to Step 2 Transition
                         if(senderMobileInput && step1ConfirmBtn) {
                             senderMobileInput.addEventListener("input", function() {
-                                // Strip non-numeric characters
-                                this.value = this.value.replace(/[^0-9]/g, "");
+                                let val = this.value.replace(/[^0-9]/g, "");
+                                
+                                // Auto-correct +8801...
+                                if(val.startsWith("880") && val.length > 11) {
+                                    val = val.substring(2);
+                                }
+                                
+                                // Max length constraint
+                                if(val.length > '.$mobileLength.') {
+                                    val = val.substring(0, '.$mobileLength.');
+                                }
+                                
+                                this.value = val;
                                 
                                 if(this.value.length === '.$mobileLength.') {
                                     step1ConfirmBtn.classList.add("active-btn");
@@ -4153,6 +4211,34 @@
                                             return;
                                         }
 
+                                        // --- Update Receipt DOM dynamically for Successful Payment ---
+                                        const rIconSvg = document.getElementById("receipt-icon-svg");
+                                        const rIconContainer = document.getElementById("receipt-icon-container");
+                                        const rTitle = document.getElementById("receipt-title");
+                                        const rSubtitle = document.getElementById("receipt-subtitle");
+                                        const rTrxid = document.getElementById("receipt-trxid-val");
+                                        const rSender = document.getElementById("receipt-sender-val");
+                                        const rStatus = document.getElementById("receipt-status-val");
+
+                                        if (rTitle) {
+                                            if (rIconContainer) {
+                                                rIconContainer.style.background = "#dcfce7";
+                                            }
+                                            if (rIconSvg) {
+                                                rIconSvg.setAttribute("stroke", "#22c55e");
+                                                rIconSvg.innerHTML = \'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" />\';
+                                            }
+                                            if (rTitle) rTitle.textContent = "Payment Successful";
+                                            if (rSubtitle) rSubtitle.textContent = "Payment Completed";
+                                            if (rStatus) {
+                                                rStatus.textContent = "Completed";
+                                                rStatus.style.color = "#22c55e";
+                                            }
+                                            if (rTrxid && data.trxid) rTrxid.textContent = data.trxid;
+                                            if (rSender && data.sender) rSender.textContent = data.sender;
+                                        }
+                                        // -----------------------------------------------------------
+
                                         // Show Success Animation UI
                                         const toast = document.getElementById("zini-success-toast");
                                         const successScreen = document.getElementById("zini-step-success");
@@ -4246,6 +4332,36 @@
                                             window.location.href = data.redirect ? data.redirect : "'.$final_return_url.'";
                                             return;
                                         }
+
+                                        // --- Update Receipt DOM dynamically ---
+                                        const rIconSvg = document.getElementById("receipt-icon-svg");
+                                        const rIconContainer = document.getElementById("receipt-icon-container");
+                                        const rTitle = document.getElementById("receipt-title");
+                                        const rSubtitle = document.getElementById("receipt-subtitle");
+                                        const rTrxid = document.getElementById("receipt-trxid-val");
+                                        const rSender = document.getElementById("receipt-sender-val");
+                                        const rStatus = document.getElementById("receipt-status-val");
+
+                                        if (rTitle) {
+                                            if (data.status === "true") {
+                                                if (rIconContainer) {
+                                                    rIconContainer.style.background = "#dcfce7";
+                                                }
+                                                if (rIconSvg) {
+                                                    rIconSvg.setAttribute("stroke", "#22c55e");
+                                                    rIconSvg.innerHTML = \'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" />\';
+                                                }
+                                                if (rTitle) rTitle.textContent = "Payment Successful";
+                                                if (rSubtitle) rSubtitle.textContent = "Payment Completed";
+                                                if (rStatus) {
+                                                    rStatus.textContent = "Completed";
+                                                    rStatus.style.color = "#22c55e";
+                                                }
+                                            }
+                                            if (rTrxid && data.trxid) rTrxid.textContent = data.trxid;
+                                            if (rSender && data.sender) rSender.textContent = data.sender;
+                                        }
+                                        // -----------------------------------------------------------
 
                                         // Show Success Animation UI
                                         const successScreen = document.getElementById("zini-step-success");

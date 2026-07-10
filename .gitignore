@@ -7,3 +7,12 @@ project_recovery_state.md
 *.zip
 *.tar.gz
 *.rar
+
+# Local Development
+.agents/
+create_release.php
+find_bracket.php
+
+# Temporary application files
+pp-content/tmp/*
+!pp-content/tmp/.gitkeep

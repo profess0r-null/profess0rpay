@@ -335,7 +335,18 @@
                                 </div>
 
                                 <div class="border rounded p-2 mt-2 d-flex align-items-center justify-content-center" style=" height: 90px; max-width: 300px; ">
-                                    <img src="<?php echo (strpos($response_gateway['response'][0]['logo'], 'http') === 0 || strpos($response_gateway['response'][0]['logo'], 'data:image') === 0 || strpos($response_gateway['response'][0]['logo'], '/') === 0) ? $response_gateway['response'][0]['logo'] : $site_url . $response_gateway['response'][0]['logo']; ?>" accept="image/*" alt="" id="preview2" style=" max-width: 100%; max-height: 100%; ">
+                                    <?php 
+                                        $saved_logo = $response_gateway['response'][0]['logo'];
+                                        if (strpos($saved_logo, 'pp-content/') !== false) {
+                                            $saved_logo = substr($saved_logo, strpos($saved_logo, 'pp-content/'));
+                                        } elseif (strpos($saved_logo, 'pp-media/') !== false) {
+                                            $saved_logo = substr($saved_logo, strpos($saved_logo, 'pp-media/'));
+                                        } elseif (strpos($saved_logo, 'assets/') !== false) {
+                                            $saved_logo = substr($saved_logo, strpos($saved_logo, 'assets/'));
+                                        }
+                                        $final_logo_url = (strpos($saved_logo, 'http') === 0 || strpos($saved_logo, 'data:image') === 0 || strpos($saved_logo, '/') === 0) ? $saved_logo : $site_url . $saved_logo;
+                                    ?>
+                                    <img src="<?php echo $final_logo_url; ?>" accept="image/*" alt="" id="preview2" style=" max-width: 100%; max-height: 100%; ">
                                 </div>
                             </div>
                         </div>

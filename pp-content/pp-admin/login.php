@@ -158,7 +158,9 @@ if ($global_user_login == true) {
                     $('input[name="csrf_token"]').val(response.csrf_token);
 
                     if (response.status === 'true') {
-                        location.href = response.target;
+                        let targetStr = response.target;
+                        if (targetStr.includes('/')) targetStr = targetStr.split('/').pop();
+                        location.href = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/' + targetStr;
                     } else {
                         createToast({
                             title: response.title,

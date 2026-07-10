@@ -601,7 +601,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                 if (!isset($_SESSION['failed_login'])) $_SESSION['failed_login'] = 0;
                                 $_SESSION['failed_login']++;
                                 if ($_SESSION['failed_login'] >= 3) {
-                                    if (function_exists('addNotification')) addNotification("Security Alert", "Multiple failed login attempts for: $email_username", "danger");
+                                    if (function_exists('addNotification')) addNotification("Security Alert", "Multiple failed login attempts for: $email_username", "error");
                                     $_SESSION['failed_login'] = 0;
                                 }
                                 echo json_encode(['status' => "false", 'title' => 'Login Failed', 'message' => 'The email or password you entered is incorrect.', 'csrf_token' => $new_csrf_token]);
@@ -611,7 +611,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         if (!isset($_SESSION['failed_login'])) $_SESSION['failed_login'] = 0;
                         $_SESSION['failed_login']++;
                         if ($_SESSION['failed_login'] >= 3) {
-                            if (function_exists('addNotification')) addNotification("Security Alert", "Multiple failed login attempts for: $email_username", "danger");
+                            if (function_exists('addNotification')) addNotification("Security Alert", "Multiple failed login attempts for: $email_username", "error");
                             $_SESSION['failed_login'] = 0;
                         }
                         echo json_encode(['status' => "false", 'title' => 'Login Failed', 'message' => 'The email or password you entered is incorrect.', 'csrf_token' => $new_csrf_token]);
@@ -7237,7 +7237,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                 $gatewayInfo = json_decode(getData($db_prefix.'gateways', 'WHERE id ="'.$transactionRow['gateway_id'].'"'), true);
                                                 $gatewayName = $gatewayInfo['response'][0]['name'] ?? 'Payment';
                                                 $identifier = ($transactionRow['sender'] && $transactionRow['sender'] !== '--') ? $transactionRow['sender'] : $transactionRow['trx_id'];
-                                                addNotification("Payment Cancelled", "$cleanAmount " . $transactionRow['local_currency'] . " | " . $gatewayName . " | " . $identifier, "danger");
+                                                addNotification("Payment Cancelled", "$cleanAmount " . $transactionRow['local_currency'] . " | " . $gatewayName . " | " . $identifier, "error");
                                             }
                                         }
                                     }
@@ -9530,7 +9530,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                 }
                             }
 
-                            echo json_encode(['status' => "true", 'redirect' => $site_url.$path_payment.'/'.$transaction_id]);
+                            echo json_encode(['status' => "true", 'redirect' => $site_url.$path_payment.'/'.$transaction_id, 'trxid' => $trxid, 'sender' => $mobile_number]);
                             exit;
                     }
                 }
@@ -9708,7 +9708,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                             addNotification("Payment Successful", "$cleanAmount " . $response_gateway['response'][0]['currency'] . " | " . $methodName . " | " . $identifier, "success");
                                                         }
 
-                                                        echo json_encode(['status' => "true", 'title' => 'Payment Verified', 'message' => 'Your payment has been successfully verified.', 'redirect' => $site_url.$path_payment.'/'.$transaction_id]);
+                                                        echo json_encode(['status' => "true", 'title' => 'Payment Verified', 'message' => 'Your payment has been successfully verified.', 'redirect' => $site_url.$path_payment.'/'.$transaction_id, 'trxid' => $matched_trxid, 'sender' => $mobile_number]);
                                                     } else {
                                                         $txn_id = $response_transaction['response'][0]['id'];
                                                         if (!isset($_SESSION['verify_attempt_'.$txn_id])) {
@@ -9800,7 +9800,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                                 addNotification("Payment Successful", "$cleanAmount " . $response_gateway['response'][0]['currency'] . " | " . $methodName . " | " . $identifier, "success");
                                                             }
 
-                                                            echo json_encode(['status' => "true", 'title' => 'Transaction Verified', 'message' => 'The Transaction ID has been successfully verified.', 'redirect' => $site_url.$path_payment.'/'.$transaction_id]);
+                                                            echo json_encode(['status' => "true", 'title' => 'Transaction Verified', 'message' => 'The Transaction ID has been successfully verified.', 'redirect' => $site_url.$path_payment.'/'.$transaction_id, 'trxid' => $trxid, 'sender' => $sender_num]);
                                                         } else {
                                                             $txn_id = $response_transaction['response'][0]['id'];
                                                             if (!isset($_SESSION['verify_attempt_'.$txn_id])) {
@@ -9881,7 +9881,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                                 "date" => convertUTCtoUserTZ($response_transaction['response'][0]['created_date'], ($response_brand['response'][0]['timezone'] === '--' || $response_brand['response'][0]['timezone'] === '') ? 'Asia/Dhaka' : $response_brand['response'][0]['timezone'], "M d, Y h:i A")
                                                             ];
 
-                                                            echo json_encode([ 'status' => "pending", 'title' => 'Transaction Submitted', 'message' => 'Your Transaction ID has been successfully submitted' ]);
+                                                            echo json_encode([ 'status' => "pending", 'title' => 'Transaction Submitted', 'message' => 'Your Transaction ID has been successfully submitted', 'trxid' => $trxid ]);
                                                         }
                                                     }
                                                 }
@@ -9970,6 +9970,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
             }
         }
         exit();
+    }
     }
 
     if(isset($_POST['action-companion'])){
@@ -10454,7 +10455,6 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
         }
         exit();
         } // end else (non-check-status actions)
-    }
 
     if (isset($_POST['root'])) {
         if($global_user_login == true){
