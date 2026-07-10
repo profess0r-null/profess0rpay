@@ -504,7 +504,11 @@ body {
         load_dashboard_transaction_statistics();
     }
 
-    setTimeout(() => {
-        load_dashboard_transaction_statistics();
-    }, 100);
+    (function waitForApexCharts() {
+        if (typeof ApexCharts !== 'undefined') {
+            load_dashboard_transaction_statistics();
+        } else {
+            setTimeout(waitForApexCharts, 200);
+        }
+    })();
 </script>
