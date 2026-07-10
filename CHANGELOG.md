@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed "Revenue Overview" graph rendering issue on the dashboard during AJAX navigation.
 - Fixed Javascript errors blocking smart redirects after creating or editing a gateway.
 - Fixed fresh installation database version mismatch (defaulting to 1.3.0 instead of 1.2.2).
+- Fixed checkout auto-verification polling bug where TrxID mode and SMS validity checks were completely ignored by the background AJAX request.
 
 ## [1.2.3] - 2026-07-09
 ### Added
