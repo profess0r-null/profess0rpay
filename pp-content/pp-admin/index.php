@@ -1194,7 +1194,7 @@
                         else if(n.title === 'Payment Successful' || n.title === 'New Payment Initiated' || n.title === 'Webhook Failed') actionUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/transaction';
                         else if(n.title === 'Security Alert') actionUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/activities';
                         else if(n.title === 'Device Offline Alert' || n.title === 'Device Offline') actionUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/devices';
-                        else if(n.title === 'System Update Available Alert' || n.title === 'System Update Available') actionUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/system-update';
+                        else if(n.title === 'System Update Available Alert' || n.title === 'System Update Available') actionUrl = '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/system-settings/update';
 
                         let unreadBg = (n.is_read == 0) ? 'bg-muted-lt' : '';
                         let unreadBadge = (n.is_read == 0) ? '<span class="badge bg-red p-1 flex-shrink-0" style="border-radius: 50%;"></span>' : '';

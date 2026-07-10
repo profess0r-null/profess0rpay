@@ -51,12 +51,7 @@ if (!defined('Profess0rPay_INIT')) {
             </div>
 
             <div class="col-auto ms-auto d-print-none">
-                <div class="btn-list align-items-center gap-3">
-                    <button class="btn btn-dark" onclick="load_content('Update History','<?php echo $site_url.$path_admin ?>/system-update/history','nav-item-system-settings')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8l0 4l2 2" /><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" /></svg>
-                        Update History
-                    </button>
-                </div>
+                <!-- Update History button removed because page does not exist -->
             </div>
         </div>
     </div>
