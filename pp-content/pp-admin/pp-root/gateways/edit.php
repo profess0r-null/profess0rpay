@@ -707,8 +707,6 @@
             dataType: 'json',
             success: function (response) {
                 closeAllBootstrapModals();
-        
-                document.querySelector("#my-action-confirmation-btn").value = '';
 
                 document.querySelector('.'+btnClass).innerHTML = btn;
 

@@ -477,8 +477,6 @@
             dataType: 'json',
             success: function (response) {
                 closeAllBootstrapModals();
-        
-                document.querySelector("#my-action-confirmation-btn").value = '';
 
                 document.querySelector('.'+btnClass).innerHTML = btn;
 
@@ -498,7 +496,11 @@
                         top: 70
                     });
 
-                    load_content('Gateways','<?php echo $site_url.$path_admin ?>/gateways','nav-item-gateways')
+                    if (response.gateway_id) {
+                        load_content('Edit Gateway', '<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/gateways/edit?ref=' + response.gateway_id, 'nav-item-gateways');
+                    } else {
+                        load_content('Gateways','<?php echo $site_url.$path_admin ?>/gateways','nav-item-gateways')
+                    }
                 } else {
                     createToast({
                         title: response.title,

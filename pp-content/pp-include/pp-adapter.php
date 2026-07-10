@@ -223,7 +223,7 @@
 
     $pp_adapter_loaded = true;
 
-    $dynVersion = '1.2.3';
+    $dynVersion = '1.3.0';
     try {
         if (function_exists('connectDatabase')) {
             $pdo = connectDatabase();

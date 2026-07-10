@@ -3951,7 +3951,7 @@
                     if($data['transaction']['source'] == 'payment-link') {
                         $pID = '';
                         if(!empty($data['transaction']['metadata'])) {
-                            $meta = json_decode($data['transaction']['metadata'], true);
+                            $meta = is_string($data['transaction']['metadata']) ? json_decode($data['transaction']['metadata'], true) : $data['transaction']['metadata'];
                             $pID = $meta['paymentLink_id'] ?? '';
                         }
                         if($pID) $final_return_url = $site_url.$path_payment_link.'/'.$pID;
