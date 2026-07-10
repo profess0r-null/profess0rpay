@@ -398,6 +398,7 @@ body {
 </div>
 
 <script>
+(function() {
     function quickActionItem(ItemID, actionID) {
         var csrf_token_default = $('input[name="csrf_token_default"]').val();
         var btnClass = 'btnQuickAction-'+ItemID+'-'+actionID;
@@ -431,7 +432,6 @@ body {
     }
 
     // Chart logic
-    let chartTransactionStatistics;
     function load_dashboard_transaction_statistics(){
         var csrf_token_default = $('input[name="csrf_token_default"]').val();
         var date = $('#dateFilter-transaction-statistics').val();
@@ -453,9 +453,9 @@ body {
                 }
 
                 if (res.status === 'true') {
-                    if (chartTransactionStatistics) { chartTransactionStatistics.destroy(); }
+                    if (window.chartTransactionStatistics) { window.chartTransactionStatistics.destroy(); window.chartTransactionStatistics = null; }
 
-                    chartTransactionStatistics = new ApexCharts(
+                    window.chartTransactionStatistics = new ApexCharts(
                       document.getElementById("chart-transaction-statistics"),
                       {
                         chart: {
@@ -494,7 +494,7 @@ body {
                         colors: ["#6366f1", "#10b981"]
                       }
                     );
-                    chartTransactionStatistics.render();
+                    window.chartTransactionStatistics.render();
                 }
             }
         });
@@ -511,4 +511,6 @@ body {
             setTimeout(waitForApexCharts, 200);
         }
     })();
+
+})();
 </script>
