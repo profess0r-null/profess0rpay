@@ -107,6 +107,11 @@
         global $db_host, $db_port, $db_user, $db_pass, $db_name;
         $db_port = $db_port ?? 3306; // fallback
 
+        static $pdo = null;
+        if ($pdo !== null) {
+            return $pdo;
+        }
+
     try {
             // Build DSN
             $dsn = "mysql:host=$db_host;port=$db_port;dbname=$db_name;charset=utf8mb4";
