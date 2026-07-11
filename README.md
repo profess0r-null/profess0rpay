@@ -78,6 +78,7 @@ Profess0rPay/
 ├── assets/                     # CSS, JS, and Image assets for the UI
 ├── docs/                       # Official Documentation (e.g., API_DOCUMENTATION.md)
 ├── install/                    # The 2-Minute Web Setup Wizard
+├── plugins/                    # Integrations & 3rd-Party Plugins (e.g., WooCommerce)
 ├── pp-content/                 # Core System Content & Logic
 │   ├── pp-admin/               # Administrative Dashboard UI & Logic
 │   ├── pp-include/             # Core System Functions, Adapters, and Routing Logic
