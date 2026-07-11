@@ -698,7 +698,7 @@
                         let redirectDelete = '';
                         
                         if (allowEdit) {
-                            //redirectEdit = `style="cursor:pointer;" onclick="load_content('Edit Customer','<?php echo $site_url ?>admin/customers/edit?ref=${item.id}','nav-item-customers')"`;
+                            //redirectEdit = `style="cursor:pointer;" onclick="load_content('Edit Customer','<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/customers/edit?ref=${item.id}','nav-item-customers')"`;
                             redirectEdit = `style="cursor:pointer;" onclick="openEditModel('${item.id}')"`;
                         }
 

@@ -499,7 +499,7 @@
                         let redirectDelete = '';
                         
                         if (allowEdit) {
-                            redirectEdit = `style="cursor:pointer;" onclick="load_content('Edit Gateway','<?php echo $site_url ?>admin/gateways/edit?ref=${item.id}','nav-item-gateways')"`;
+                            redirectEdit = `style="cursor:pointer;" onclick="load_content('Edit Gateway','<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/gateways/edit?ref=${item.id}','nav-item-gateways')"`;
                         }
 
                         if (allowDelete) {

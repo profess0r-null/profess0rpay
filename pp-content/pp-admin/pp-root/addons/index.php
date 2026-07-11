@@ -456,7 +456,7 @@
                         let redirectDelete = '';
                         
                         if (allowEdit) {
-                            redirectEdit = `style="cursor:pointer;" onclick="load_content('Edit Addons','<?php echo $site_url ?>admin/addons/edit?ref=${item.id}','nav-item-addons')"`;
+                            redirectEdit = `style="cursor:pointer;" onclick="load_content('Edit Addons','<?php echo rtrim($site_url, "/") . "/" . $path_admin ?>/addons/edit?ref=${item.id}','nav-item-addons')"`;
                         }
 
                         if (allowDelete) {
