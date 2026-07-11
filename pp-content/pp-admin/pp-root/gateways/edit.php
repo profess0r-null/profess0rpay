@@ -530,7 +530,7 @@
                                                                     <span class="form-selectgroup-check"></span>
                                                                 </div>
                                                                 <div class="form-selectgroup-label-content d-flex flex-column align-items-start">
-                                                                    <div class="font-weight-bold mb-1" style="font-size: 15px; color: #1f2937;">Verify using Transaction ID</div>
+                                                                    <div class="font-weight-bold mb-1" style="font-size: 15px; color: var(--tblr-body-color);">Verify using Transaction ID</div>
                                                                     <div class="text-muted" style="font-size:13px; white-space: normal; line-height: 1.4;">Customer completes payment and enters the transaction ID to verify.</div>
                                                                 </div>
                                                             </div>
@@ -544,7 +544,7 @@
                                                                     <span class="form-selectgroup-check"></span>
                                                                 </div>
                                                                 <div class="form-selectgroup-label-content d-flex flex-column align-items-start">
-                                                                    <div class="font-weight-bold mb-1" style="font-size: 15px; color: #1f2937;">Verify using Phone Number</div>
+                                                                    <div class="font-weight-bold mb-1" style="font-size: 15px; color: var(--tblr-body-color);">Verify using Phone Number</div>
                                                                     <div class="text-muted" style="font-size:13px; white-space: normal; line-height: 1.4;">Customer completes payment from a phone number. The system verifies the payment automatically using SMS.</div>
                                                                 </div>
                                                             </div>
@@ -750,3 +750,4 @@
         });
     });
 </script>
+

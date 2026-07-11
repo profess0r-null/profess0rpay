@@ -146,7 +146,7 @@ if (!defined('Profess0rPay_INIT')) {
                                                     ?>
 
                                                     <div class="border rounded p-3 mb-3">
-                                                        <div class="form-label mb-2" style="border-bottom: 1px solid #e5e7eb;margin-left: -1rem;margin-right: -1rem;padding-left: 1rem;padding-right: 1rem;padding-bottom: 10px;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
+                                                        <div class="form-label mb-2" style="border-bottom: 1px solid var(--tblr-border-color);margin-left: -1rem;margin-right: -1rem;padding-left: 1rem;padding-right: 1rem;padding-bottom: 10px;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
                                                             <?= ucfirst(str_replace(['_', '-'], ' ', $module)) ?>
 
                                                             <span onclick="select_by_box('<?php echo $rand_id?>')" class="btn-<?php echo $rand_id?> text-primary" style=" cursor: pointer; font-size: 14px; font-weight: 500; ">Select All</span>

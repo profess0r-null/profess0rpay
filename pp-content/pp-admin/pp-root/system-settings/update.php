@@ -74,7 +74,7 @@ if (!defined('Profess0rPay_INIT')) {
                         <?php $latestVer = str_replace('v', '', $latestRelease['tag_name']); ?>
                         <h2 class="mb-0 fw-bold <?= version_compare($currentVersion, $latestVer, '<') ? 'text-success' : 'text-primary' ?>" id="latest-ver-tag">v<?= htmlspecialchars($latestVer) ?></h2>
                         <?php if (version_compare($currentVersion, $latestVer, '<')): ?>
-                            <span class="badge bg-warning mt-2 d-inline-block" style="width: fit-content;">New Update Available!</span>
+                            <span class="badge bg-warning text-white mt-2 d-inline-block" style="width: fit-content; font-size: 13px; padding: 4px 10px;">New Update Available!</span>
                         <?php elseif (version_compare($currentVersion, $latestVer, '==')): ?>
                             <span class="badge bg-primary text-white mt-2 d-inline-block" style="width: fit-content;">Re-install Available</span>
                         <?php else: ?>
@@ -101,7 +101,7 @@ if (!defined('Profess0rPay_INIT')) {
                     <h3 class="card-title">Release Notes (<?= htmlspecialchars($latestRelease['tag_name']) ?>)</h3>
                 </div>
                 <div class="card-body">
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; max-height: 200px; overflow-y: auto;" class="mb-4">
+                    <div style="background: var(--tblr-bg-surface-secondary); border: 1px solid var(--tblr-border-color); padding: 15px; border-radius: 5px; max-height: 200px; overflow-y: auto;" class="mb-4">
                         <?= nl2br(htmlspecialchars($latestRelease['body'])) ?>
                     </div>
                     

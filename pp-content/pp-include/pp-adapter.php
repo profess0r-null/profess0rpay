@@ -5571,8 +5571,8 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                             exit();
                         }
 
-                        $columns = ['autoExchange', 'favicon', 'logo', 'name', 'timezone', 'language', 'currency_code', 'payment_tolerance', 'redirect_url', 'street_address', 'city_town', 'postal_code', 'country', 'support_phone_number', 'support_email_address', 'support_website', 'whatsapp_number', 'telegram', 'facebook_messenger', 'facebook_page', 'updated_date'];
-                        $values = [$autoExchange, $branding_favicon, $branding_primary_logo, $site_name, $default_timezone, $default_language, $default_currency, money_sanitize($payment_tolerance), $redirect_url, $street_address, $city_town, $postal_code, $country, $support_phone_number, $support_email_address, $support_website, $whatsapp_number, $telegram, $facebook_messenger, $facebook_page, getCurrentDatetime('Y-m-d H:i:s')];
+                        $columns = ['email_receipt', 'autoExchange', 'favicon', 'logo', 'name', 'timezone', 'language', 'currency_code', 'payment_tolerance', 'redirect_url', 'street_address', 'city_town', 'postal_code', 'country', 'support_phone_number', 'support_email_address', 'support_website', 'whatsapp_number', 'telegram', 'facebook_messenger', 'facebook_page', 'updated_date'];
+                        $values = [$email_receipt, $autoExchange, $branding_favicon, $branding_primary_logo, $site_name, $default_timezone, $default_language, $default_currency, money_sanitize($payment_tolerance), $redirect_url, $street_address, $city_town, $postal_code, $country, $support_phone_number, $support_email_address, $support_website, $whatsapp_number, $telegram, $facebook_messenger, $facebook_page, getCurrentDatetime('Y-m-d H:i:s')];
                         $condition = "brand_id = '".$global_response_brand['response'][0]['brand_id']."'"; 
                         
                         updateData($db_prefix.'brands', $columns, $values, $condition);
@@ -7404,10 +7404,10 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         $discount_fmt = number_format((float)$row['discount_amount'], 2, '.', '');
 
                         // ZiniPay Matching Styles
-                        $box_stl = 'border: 1px solid #e5e7eb; border-radius: 0.5rem; background-color: #f9fafb; padding: 1rem; margin-bottom: 1rem;';
-                        $hdr_stl = 'font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; margin-bottom: 0.75rem; margin-top: 0;';
-                        $lbl_stl = 'font-size: 0.75rem; font-weight: 600; color: #6b7280; margin-bottom: 0.25rem;';
-                        $val_stl = 'font-size: 0.875rem; font-weight: 500; color: #1f2937; word-break: break-all; margin-bottom: 0;';
+                        $box_stl = 'border: 1px solid var(--tblr-border-color); border-radius: 0.5rem; background-color: var(--tblr-bg-surface); padding: 1rem; margin-bottom: 1rem;';
+                        $hdr_stl = 'font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tblr-muted); margin-bottom: 0.75rem; margin-top: 0;';
+                        $lbl_stl = 'font-size: 0.75rem; font-weight: 600; color: var(--tblr-muted); margin-bottom: 0.25rem;';
+                        $val_stl = 'font-size: 0.875rem; font-weight: 500; color: var(--tblr-body-color); word-break: break-all; margin-bottom: 0;';
 
                         // SVG COPY ICON
                         $copy_svg = '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="14px" width="14px" xmlns="http://www.w3.org/2000/svg"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v360c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"></path></svg>';
@@ -10532,3 +10532,8 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
         }
         exit;
     }
+
+
+
+
+

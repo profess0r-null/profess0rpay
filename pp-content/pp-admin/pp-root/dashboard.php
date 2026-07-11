@@ -13,7 +13,7 @@
 <style>
 /* Modern Premium SaaS Styling */
 body {
-    background-color: #f8fafc !important;
+    background-color: #f8fafc;
     color: #334155;
 }
 .card {
@@ -56,7 +56,7 @@ body {
 .table-custom thead th {
     background: transparent !important;
     border-bottom: 2px solid #f1f5f9 !important;
-    color: #64748b !important;
+    color: var(--tblr-muted) !important;
     font-weight: 600;
     text-transform: uppercase;
     font-size: 11px;
@@ -514,3 +514,4 @@ body {
 
 })();
 </script>
+

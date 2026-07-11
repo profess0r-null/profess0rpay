@@ -45,7 +45,7 @@
                                 </span>
                             </div>
                             <div class="col">
-                                <div class="font-weight-medium" style="font-size: 15px; color: #475569;">Total Revenue</div>
+                                <div class="font-weight-medium" style="font-size: 15px; color: var(--tblr-body-color);">Total Revenue</div>
                                 <div class="text-dark fw-bold" style="font-size: 20px;" id="summary-revenue">৳ 0.00</div>
                             </div>
                         </div>
@@ -62,7 +62,7 @@
                                 </span>
                             </div>
                             <div class="col">
-                                <div class="font-weight-medium" style="font-size: 15px; color: #475569;">Successful</div>
+                                <div class="font-weight-medium" style="font-size: 15px; color: var(--tblr-body-color);">Successful</div>
                                 <div class="text-dark fw-bold" style="font-size: 20px;" id="summary-successful">0</div>
                             </div>
                         </div>
@@ -79,7 +79,7 @@
                                 </span>
                             </div>
                             <div class="col">
-                                <div class="font-weight-medium" style="font-size: 15px; color: #475569;">Pending</div>
+                                <div class="font-weight-medium" style="font-size: 15px; color: var(--tblr-body-color);">Pending</div>
                                 <div class="text-dark fw-bold" style="font-size: 20px;" id="summary-pending">0</div>
                             </div>
                         </div>
@@ -96,7 +96,7 @@
                                 </span>
                             </div>
                             <div class="col">
-                                <div class="font-weight-medium" style="font-size: 15px; color: #475569;">Failed / Canceled</div>
+                                <div class="font-weight-medium" style="font-size: 15px; color: var(--tblr-body-color);">Failed / Canceled</div>
                                 <div class="text-dark fw-bold" style="font-size: 20px;" id="summary-failed">0</div>
                             </div>
                         </div>
@@ -142,9 +142,9 @@
 
             <div class="col-12">
                 <div class="card">
-                    <div class="w-100" style="border-bottom: 1px solid #e8e7ec;">
+                    <div class="w-100" style="border-bottom: 1px solid var(--tblr-border-color);">
                         <div style="display: flex; flex-direction: row-reverse; height: 53px; align-items: center; padding-right: 20px; font-size: 22px;">
-                           <svg data-bs-toggle="offcanvas" href="#filterOffcanvas" role="button" aria-controls="filterOffcanvas" style="cursor: pointer; color: #475569;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-filter"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227z" /></svg>
+                           <svg data-bs-toggle="offcanvas" href="#filterOffcanvas" role="button" aria-controls="filterOffcanvas" style="cursor: pointer; color: var(--tblr-body-color);" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-filter"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227z" /></svg>
                         </div>
                     </div>
 
@@ -290,7 +290,7 @@
     opacity: 1;
 }
 #quickViewBody {
-    background-color: #f1f5f9;
+    background-color: var(--tblr-body-bg);
     padding: 1.5rem;
 }
 </style>
@@ -566,9 +566,9 @@
                                 <td><input class="form-check-input m-0 align-middle table-selectable-check rowCheckbox" type="checkbox" aria-label="Select invoice"></td>
                                 <td ${redirectEdit}>
                                     <div class="d-flex py-1 align-items-center">
-                                        <span class="avatar me-3 rounded-circle" style="background-color: #f1f5f9; color: #475569; font-size: 13px; font-weight: 600; width: 36px; height: 36px;">${initials}</span>
+                                        <span class="avatar me-3 rounded-circle" style="background-color: var(--tblr-body-bg); color: var(--tblr-body-color); font-size: 13px; font-weight: 600; width: 36px; height: 36px;">${initials}</span>
                                         <div class="flex-fill">
-                                            <div class="font-weight-bold" style="color: #1e293b; font-size: 14px;">${item.name}</div>
+                                            <div class="font-weight-bold" style="color: var(--tblr-body-color); font-size: 14px;">${item.name}</div>
                                             <div class="text-secondary" style="font-size: 12px; margin-top: 2px;">${item.email && item.email.trim() !== '' ? item.email : item.mobile}</div>
                                         </div>
                                     </div>
@@ -580,7 +580,7 @@
                                 <td ${redirectEdit} class="text-dark fw-bold">${item.amount}</td>
                                 <td ${redirectEdit} class="text-success fw-bold">${item.net_amount}</td>
                                 <td ${redirectEdit}>
-                                    <span style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 6px; font-family: monospace; font-size: 12px; color: #475569;">${item.trx_id}</span>
+                                    <span style="background: var(--tblr-bg-surface); border: 1px solid var(--tblr-border-color); border-radius: 4px; padding: 2px 6px; font-family: monospace; font-size: 12px; color: var(--tblr-body-color);">${item.trx_id}</span>
                                 </td>
                                 <td ${redirectEdit} class="text-secondary" style="font-size: 13px;">${item.created_date}</td>
                                 <td ${redirectEdit}><span class="badge ${badgeBg} ${badgeText}" style="padding: 4px 8px; border-radius: 6px;">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span></td>
@@ -803,3 +803,4 @@
         });
     }
 </script>
+

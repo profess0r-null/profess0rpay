@@ -937,15 +937,13 @@
                     'pattern'  => '/You have received payment Tk ([\d,.]+) from (\d+)\.(?:\s*Ref[:\-]?\s*(\S+))? Fee Tk ([\d,.]+)\. Balance Tk ([\d,.]+)\. TrxID ([A-Z0-9]+) at ([\d\/:\s]+)/i',
                     'map'      => ['amount', 'sender', 'ref', 'fee', 'balance', 'trxid', 'datetime']
                 ],
-
-                /*
-                // 🔹 AGENT
+                // 🔹 FALLBACK ROBUST PATTERNS
                 [
-                    'type'     => 'Agent',
-                    'priority' => 60,
-                    'pattern'  => '/Cash In Tk ([\d,.]+) from (\d+) successful\. Balance Tk ([\d,.]+)\. TrxID ([A-Z0-9]+)/i',
-                    'map'      => ['amount', 'sender', 'balance', 'trxid']
-                ],*/
+                    'type'     => 'Personal',
+                    'priority' => 70,
+                    'pattern'  => '/(?:received|Cash In|payment).*?Tk\s*([\d,.]+).*?from\s*(\d+).*?TrxID\s*([A-Z0-9]+)/i',
+                    'map'      => ['amount', 'sender', 'trxid']
+                ],
             ],
             'nagad' => [
                 // 🔹 PERSONAL (Most specific first)
@@ -968,22 +966,6 @@
                     'pattern'  => '/(?:Money|Cash In) Received.*?Amount.*?(?:Tk)?\s*([\d,]+(?:\.\d+)?).*?(?:Sender|Uddokta).*?(\d+).*?T(?:xn|rx)I[dD].*?([A-Z0-9]+)/i',
                     'map'      => ['amount', 'sender', 'trxid']
                 ],
-
-                /*
-                [
-                    'type'     => 'Merchant',
-                    'priority' => 70,
-                    'pattern'  => '/received a payment of Tk ([\d,.]+) from (\d+)\. TrxID ([A-Z0-9]+) at ([\d\/:\s]+)/i',
-                    'map'      => ['amount', 'sender', 'trxid', 'datetime']
-                ],
-
-                // 🔹 AGENT
-                [
-                    'type'     => 'Agent',
-                    'priority' => 60,
-                    'pattern'  => '/Cash In Tk ([\d,.]+) from (\d+) successful\. Balance Tk ([\d,.]+)\. TrxID ([A-Z0-9]+)/i',
-                    'map'      => ['amount', 'sender', 'balance', 'trxid']
-                ],*/
             ],
             'rocket' => [
                 // 🔹 PERSONAL (Most specific first)
@@ -1015,22 +997,13 @@
                     'pattern'  => '/Tk\. ([\d,.]+) has been received from (\d+)\.(?:\s*Ref[:\-]?\s*(\S+))? Balance Tk\. ([\d,.]+)\. TrxID ([A-Z0-9]+) at ([\d\/:\s]+)\./i',
                     'map'      => ['amount', 'sender', 'ref', 'balance', 'trxid', 'datetime']
                 ],
-
-                /*
+                // 🔹 FALLBACK ROBUST PATTERNS
                 [
-                    'type'     => 'Merchant',
-                    'priority' => 70,
-                    'pattern'  => '/received a payment of Tk ([\d,.]+) from (\d+)\. TrxID ([A-Z0-9]+) at ([\d\/:\s]+)/i',
-                    'map'      => ['amount', 'sender', 'trxid', 'datetime']
+                    'type'     => 'Personal',
+                    'priority' => 80,
+                    'pattern'  => '/Tk\.\s*([\d,.]+).*?received from\s*(\d+).*?TrxID\s*([A-Z0-9]+)/i',
+                    'map'      => ['amount', 'sender', 'trxid']
                 ],
-
-                // 🔹 AGENT
-                [
-                    'type'     => 'Agent',
-                    'priority' => 60,
-                    'pattern'  => '/Cash In Tk ([\d,.]+) from (\d+) successful\. Balance Tk ([\d,.]+)\. TrxID ([A-Z0-9]+)/i',
-                    'map'      => ['amount', 'sender', 'balance', 'trxid']
-                ],*/
             ],
             'tap' => [
                 // 🔹 PERSONAL (Most specific first)
@@ -1040,22 +1013,13 @@
                     'pattern'  => '/Received Tk ([\d,.]+) from (\d+)\. Balance Tk\. ([\d,.]+)\. TxID: ([A-Z0-9]+)\./i',
                     'map'      => ['amount', 'sender', 'balance', 'trxid']
                 ],
-
-                /*
+                // 🔹 FALLBACK ROBUST PATTERNS
                 [
-                    'type'     => 'Merchant',
-                    'priority' => 70,
-                    'pattern'  => '/received a payment of Tk ([\d,.]+) from (\d+)\. TrxID ([A-Z0-9]+) at ([\d\/:\s]+)/i',
-                    'map'      => ['amount', 'sender', 'trxid', 'datetime']
+                    'type'     => 'Personal',
+                    'priority' => 80,
+                    'pattern'  => '/Received Tk\s*([\d,.]+).*?from\s*(\d+).*?TxID[:\s]*([A-Z0-9]+)/i',
+                    'map'      => ['amount', 'sender', 'trxid']
                 ],
-
-                // 🔹 AGENT
-                [
-                    'type'     => 'Agent',
-                    'priority' => 60,
-                    'pattern'  => '/Cash In Tk ([\d,.]+) from (\d+) successful\. Balance Tk ([\d,.]+)\. TrxID ([A-Z0-9]+)/i',
-                    'map'      => ['amount', 'sender', 'balance', 'trxid']
-                ],*/
             ],
             'cellfin' => [
                 // 🔹 PERSONAL (Most specific first)
@@ -1065,22 +1029,13 @@
                     'pattern'  => '/Islami Bank CellFin Received ([\d,.]+) Tk From CellFin: (\d+) To CellFin: (\d+) TrxId: ([A-Z0-9]+)/i',
                     'map'      => ['amount', 'sender', 'receiver', 'trxid']
                 ],
-
-                /*
+                // 🔹 FALLBACK ROBUST PATTERNS
                 [
-                    'type'     => 'Merchant',
-                    'priority' => 70,
-                    'pattern'  => '/received a payment of Tk ([\d,.]+) from (\d+)\. TrxID ([A-Z0-9]+) at ([\d\/:\s]+)/i',
-                    'map'      => ['amount', 'sender', 'trxid', 'datetime']
+                    'type'     => 'Personal',
+                    'priority' => 80,
+                    'pattern'  => '/Received\s*([\d,.]+).*?From.*?(\d+).*?TrxId[:\s]*([A-Z0-9]+)/i',
+                    'map'      => ['amount', 'sender', 'trxid']
                 ],
-
-                // 🔹 AGENT
-                [
-                    'type'     => 'Agent',
-                    'priority' => 60,
-                    'pattern'  => '/Cash In Tk ([\d,.]+) from (\d+) successful\. Balance Tk ([\d,.]+)\. TrxID ([A-Z0-9]+)/i',
-                    'map'      => ['amount', 'sender', 'balance', 'trxid']
-                ],*/
             ],
             'okwallet' => [
                 // 🔹 PERSONAL (Most specific first)
@@ -1090,22 +1045,13 @@
                     'pattern'  => '/\(OK Wallet\) Successfully received Tk ([\d,.]+) from A\/C (\d+)\.(?:\s*Ref[:\-]?\s*(\S+))? Balance Tk ([\d,.]+)\. TrxID ([A-Z0-9]+)/i',
                     'map'      => ['amount', 'sender', 'ref', 'balance', 'trxid']
                 ],
-
-                /*
+                // ?? FALLBACK ROBUST PATTERNS
                 [
-                    'type'     => 'Merchant',
-                    'priority' => 70,
-                    'pattern'  => '/received a payment of Tk ([\d,.]+) from (\d+)\. TrxID ([A-Z0-9]+) at ([\d\/:\s]+)/i',
-                    'map'      => ['amount', 'sender', 'trxid', 'datetime']
+                    'type'     => 'Personal',
+                    'priority' => 80,
+                    'pattern'  => '/(?:received|Received).*?Tk\s*([\d,.]+).*?(?:from|A\/C)\s*(\d+).*?TrxID\s*([A-Z0-9]+)/i',
+                    'map'      => ['amount', 'sender', 'trxid']
                 ],
-
-                // 🔹 AGENT
-                [
-                    'type'     => 'Agent',
-                    'priority' => 60,
-                    'pattern'  => '/Cash In Tk ([\d,.]+) from (\d+) successful\. Balance Tk ([\d,.]+)\. TrxID ([A-Z0-9]+)/i',
-                    'map'      => ['amount', 'sender', 'balance', 'trxid']
-                ],*/
             ],
             'mcash' => [
                 // 🔹 PERSONAL (Most specific first)
@@ -5076,4 +5022,49 @@ if (!function_exists('pp_renderFormFields')) {
         $values = [$title, $message, $type, getCurrentDatetime("Y-m-d H:i:s")];
         return insertData($db_prefix."notifications", $columns, $values);
     }
+
+function sendCustomerEmailReceipt($ipnData, $brandData) {
+    if (($brandData['email_receipt'] ?? 'enabled') !== 'enabled') return false;
+    $to = $ipnData['email_address'] ?? '';
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
+    
+    $brand_name = $brandData['name'] !== '--' ? $brandData['name'] : $brandData['identify_name'];
+    $subject = "Payment Receipt - $brand_name";
+    
+    $message = "
+    <html>
+    <head><title>Payment Receipt</title></head>
+    <body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>
+        <div style='max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center;'>
+            <h2 style='color: #4361ee; margin-top: 0;'>Payment Successful</h2>
+            <p style='color: #555; font-size: 16px;'>Hello {$ipnData['full_name']},</p>
+            <p style='color: #555; font-size: 16px;'>Your payment to <strong>$brand_name</strong> has been successfully processed.</p>
+            <div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: left;'>
+                <p style='margin: 5px 0;'><strong>Transaction ID:</strong> {$ipnData['transaction_id']}</p>
+                <p style='margin: 5px 0;'><strong>Order ID:</strong> {$ipnData['pp_id']}</p>
+                <p style='margin: 5px 0;'><strong>Amount:</strong> {$ipnData['total']} {$ipnData['currency']}</p>
+                <p style='margin: 5px 0;'><strong>Date:</strong> {$ipnData['date']}</p>
+                <p style='margin: 5px 0;'><strong>Method:</strong> {$ipnData['gateway']}</p>
+            </div>
+            <p style='color: #888; font-size: 14px;'>Thank you for your business!</p>
+        </div>
+    </body>
+    </html>
+    ";
+    
+    $headers = "MIME-Version: 1.0" . "\r\n";
+    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+    
+    $domain = $brandData['support_website'] ?? '';
+    $parsedDomain = parse_url($domain, PHP_URL_HOST);
+    if (!$parsedDomain) $parsedDomain = $domain;
+    if (!$parsedDomain) $parsedDomain = "profess0r-null.xyz";
+    $parsedDomain = str_replace("www.", "", $parsedDomain);
+    
+    $fromEmail = "noreply@" . $parsedDomain;
+    $headers .= "From: $brand_name <$fromEmail>" . "\r\n";
+    
+    return @mail($to, $subject, $message, $headers);
+}
+
 

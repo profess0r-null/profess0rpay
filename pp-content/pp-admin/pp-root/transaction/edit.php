@@ -173,7 +173,7 @@ if (!defined('Profess0rPay_INIT')) {
                                 <div class="tab-content">
                                     <div class="tab-pane fade show active" id="tab-transaction-details">
                                         <div class="border rounded p-4">
-                                            <div class="form-label mb-2" style="border-bottom: 1px solid #e5e7eb;margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
+                                            <div class="form-label mb-2" style="border-bottom: 1px solid var(--tblr-border-color);margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
                                                 Gateway Information
                                             </div>
                                             <div class="row g-3" style=" margin-bottom: -1rem; ">
@@ -218,7 +218,7 @@ if (!defined('Profess0rPay_INIT')) {
                                         </div>
 
                                         <div class="border rounded p-4 mt-4">
-                                            <div class="form-label mb-2" style="border-bottom: 1px solid #e5e7eb;margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
+                                            <div class="form-label mb-2" style="border-bottom: 1px solid var(--tblr-border-color);margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
                                                 Transaction Information
                                             </div>
                                             <div class="row g-3" style=" margin-bottom: -1rem; ">
@@ -263,7 +263,7 @@ if (!defined('Profess0rPay_INIT')) {
                                     </div>
                                     <div class="tab-pane fade " id="tab-customer">
                                         <div class="border rounded p-4">
-                                            <div class="form-label mb-2" style="border-bottom: 1px solid #e5e7eb;margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
+                                            <div class="form-label mb-2" style="border-bottom: 1px solid var(--tblr-border-color);margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
                                                 Customer Information
                                             </div>
                                             <div class="row g-3" style=" margin-bottom: -1rem; ">
@@ -290,7 +290,7 @@ if (!defined('Profess0rPay_INIT')) {
 
                                     <div class="tab-pane fade " id="tab-metadata">
                                         <div class="border rounded p-4">
-                                            <div class="form-label mb-2" style="border-bottom: 1px solid #e5e7eb;margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
+                                            <div class="form-label mb-2" style="border-bottom: 1px solid var(--tblr-border-color);margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
                                                 Metadata Information
                                             </div>
                                             <div class="row g-3" style=" margin-bottom: -1rem; ">
@@ -322,7 +322,7 @@ if (!defined('Profess0rPay_INIT')) {
                                     
                                     <div class="tab-pane fade " id="tab-more">
                                         <div class="border rounded p-4">
-                                            <div class="form-label mb-2" style="border-bottom: 1px solid #e5e7eb;margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
+                                            <div class="form-label mb-2" style="border-bottom: 1px solid var(--tblr-border-color);margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
                                                 More Information
                                             </div>
                                             <div class="row g-3" style=" margin-bottom: -1rem; ">
@@ -364,7 +364,7 @@ if (!defined('Profess0rPay_INIT')) {
 
                                     <div class="tab-pane fade " id="tab-endpoint">
                                         <div class="border rounded p-4">
-                                            <div class="form-label mb-2" style="border-bottom: 1px solid #e5e7eb;margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
+                                            <div class="form-label mb-2" style="border-bottom: 1px solid var(--tblr-border-color);margin-left: -1.5rem !important;margin-right: -1.5rem !important;padding-left: 1.5rem !important;padding-right: 1.5rem !important;padding-bottom: 1rem !important;font-weight: 600;margin-top: -3px;margin-bottom: 15px !important;display: flex;justify-content: space-between;">
                                                 Endpoint
                                             </div>
                                             <div class="row g-3" style=" margin-bottom: -1rem; ">

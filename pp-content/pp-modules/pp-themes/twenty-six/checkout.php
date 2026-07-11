@@ -144,7 +144,7 @@
             width: 26px;
             height: 26px;
             stroke: #ffffff;
-            stroke-width: 3;
+            stroke-width: 5;
         }
         .cancel-title {
             font-size: 22px;
@@ -192,7 +192,7 @@
     <div class="cancel-card">
         <div class="cancel-icon-wrapper">
             <div class="cancel-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
                     <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                     <path d="M18 6l-12 12"/>
                     <path d="M6 6l12 12"/>

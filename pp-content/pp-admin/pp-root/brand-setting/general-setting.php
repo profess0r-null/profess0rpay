@@ -180,6 +180,24 @@ if (!defined('Profess0rPay_INIT')) {
                                         When enabled, exchange rates are automatically fetched from external providers. When disabled, you must manually configure rates in Currency Settings.
                                     </small>
                                 </div>
+
+                                <div class="col-lg-6">
+                                    <label class="form-label">Customer Email Receipts</label>
+                                    <div class="form-control-wrap mb-2">
+                                        <div class="input-group">
+                                            <?php
+                                                $emailReceipt = ($global_response_brand['response'][0]['email_receipt'] ?? '') === '--' || ($global_response_brand['response'][0]['email_receipt'] ?? '') === '' ? 'enabled' : ($global_response_brand['response'][0]['email_receipt'] ?? 'enabled');
+                                                $checkedER = ($emailReceipt === 'enabled') ? 'checked' : '';
+                                            ?>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="emailReceipt" value="enabled" <?= $checkedER ?>>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <small class="form-hint">
+                                        When enabled, Profess0rPay will automatically send an email receipt to the customer upon successful payment (Requires working PHP mail function).
+                                    </small>
+                                </div>
                                 <div class="col-lg-6">
                                     <label class="form-label">Dynamic Numeric Routing</label>
                                     <div class="form-control-wrap mb-2">
@@ -527,6 +545,9 @@ if (!defined('Profess0rPay_INIT')) {
 
         const autoExchange = document.getElementById('autoExchange').checked ? 'enabled' : 'disabled';
         formData.set('autoExchange', autoExchange); // add to formData
+        
+        const emailReceipt = document.getElementById('emailReceipt').checked ? 'enabled' : 'disabled';
+        formData.set('email_receipt', emailReceipt);
 
         const dynamicNumericRoute = document.getElementById('dynamicNumericRoute').checked ? 'enabled' : 'disabled';
         formData.set('dynamicNumericRoute', dynamicNumericRoute);
