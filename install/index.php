@@ -123,6 +123,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $sql_file = __DIR__ . '/database.sql';
                 if (file_exists($sql_file)) {
                     $sql = file_get_contents($sql_file);
+                    
+                    // Remove SQL line comments starting with --
+                    $sql = preg_replace('/^--.*$/m', '', $sql);
+                    // Remove SQL block comments but keep MySQL conditional execution comments /*! ... */
+                    $sql = preg_replace('/^\/\*(?!!).*?\*\/$/sm', '', $sql);
+
                     // Basic split for queries
                     $queries = explode(';', $sql);
                     foreach ($queries as $query) {
