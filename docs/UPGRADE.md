@@ -9,7 +9,14 @@ For future versions, this file will contain detailed instructions on:
 - Which files to overwrite during an update.
 - How to run database migrations.
 
-### General Upgrade Process (Future Reference)
+### General Upgrade Process
+
+**Option 1: Over-The-Air (OTA) Updates (Recommended)**
+Starting from v1.3.0, you can update Profess0rPay directly from the Admin Dashboard!
+1. Navigate to **System Settings > Update**.
+2. Click the update button to automatically fetch and install the latest stable release.
+
+**Option 2: Manual Upgrade**
 1. Backup your existing `Profess0rPay` directory and Database.
 2. Download the latest release from the official repository.
 3. Replace the old files with the new files (excluding your `assets/` and custom config files if applicable).
