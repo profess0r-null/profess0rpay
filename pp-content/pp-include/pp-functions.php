@@ -5066,7 +5066,7 @@ function sendCustomerEmailReceipt($ipnData, $brandData) {
     if (!$parsedDomain || $parsedDomain === '--' || $parsedDomain === '') $parsedDomain = $_SERVER['HTTP_HOST'] ?? "profess0r-null.xyz";
     $parsedDomain = str_replace("www.", "", $parsedDomain); $parts = explode(".", $parsedDomain); if (count($parts) >= 3) { $parsedDomain = $parts[count($parts)-2] . "." . $parts[count($parts)-1]; }
     
-    $fromEmail = "noreply@" . $parsedDomain;
+          $fromEmail = $brandData["support_email_address"] ?? ""; if (empty($fromEmail) || $fromEmail === "--" || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) { $fromEmail = "noreply@" . $parsedDomain; }
     $headers .= "From: $brand_name <$fromEmail>" . "\r\n";
     
     return @mail($to, $subject, $message, $headers);
