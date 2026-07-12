@@ -113,6 +113,40 @@ Installing Profess0rPay is incredibly simple.
 
 ---
 
+## 📧 Email & SMTP Configuration (Admin Guide)
+
+To ensure your system can send transaction receipts and notifications successfully without landing in spam, configure the SMTP settings from your Admin Panel under **Brand Settings -> SMTP Settings**.
+
+### Option 1: Gmail SMTP Setup (Easiest)
+You must generate a 16-character **App Password** from your Google Account (do not use your regular password).
+1. Go to your Google Account -> **Security**.
+2. Enable **2-Step Verification**.
+3. Search for **App Passwords** and generate a new password for 'Profess0rPay'.
+
+**Admin Panel Settings:**
+- **SMTP Host:** `smtp.gmail.com`
+- **SMTP Port:** `465` (or `587`)
+- **Encryption:** `ssl` (or `tls`)
+- **SMTP Username:** Your regular Gmail address (e.g., `example@gmail.com`)
+- **SMTP Password:** The 16-character App Password.
+
+### Option 2: cPanel / Webmail SMTP Setup (Professional)
+To use a custom domain email (e.g., `support@yourdomain.com`), you must configure proper DNS records to avoid spam filters.
+
+**Prerequisites (Important):**
+1. Ensure your domain's **SPF**, **DKIM**, and **DMARC** TXT records are added to your DNS manager (e.g., Cloudflare/Namecheap). You can find these in cPanel under **Email Deliverability**.
+2. In cPanel, navigate to **Email Routing**, select your domain, and set it to **Local Mail Exchanger**.
+
+**Admin Panel Settings:**
+- **SMTP Host:** `localhost` (if hosted on the same server) or `mail.yourdomain.com`
+- **SMTP Port:** `465`
+- **Encryption:** `ssl`
+- **SMTP Username:** Your custom email address (e.g., `support@yourdomain.com`)
+- **SMTP Password:** The password for this email account.
+*(Note: Ensure the "Support Email" in your Brand Settings matches this SMTP Username perfectly to prevent spoofing flags).*
+
+---
+
 ## 📚 API Documentation
 
 Want to integrate Profess0rPay into your website? Read our comprehensive developer guide!

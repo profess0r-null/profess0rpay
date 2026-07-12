@@ -5506,11 +5506,6 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         exit();
                     }
                     
-                    if($csrf_token !== $session_token){
-                        echo json_encode(['status' => 'false', 'title' => 'Invalid Token', 'message' => 'The security token is invalid or has expired. Please refresh the page and try again.' , 'csrf_token' => $new_csrf_token]);
-                        exit();
-                    }
-
                     $smtp_status = escape_string($_POST['smtp_status'] ?? 'disabled');
                     $smtp_host = escape_string($_POST['smtp_host'] ?? '');
                     $smtp_port = escape_string($_POST['smtp_port'] ?? '');
@@ -5518,12 +5513,65 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                     $smtp_username = escape_string($_POST['smtp_username'] ?? '');
                     $smtp_password = escape_string($_POST['smtp_password'] ?? '');
 
-                    setEnvValue($db_prefix, $global_response_brand['response'][0]['brand_id'], 'smtp_status', $smtp_status);
-                    setEnvValue($db_prefix, $global_response_brand['response'][0]['brand_id'], 'smtp_host', $smtp_host);
-                    setEnvValue($db_prefix, $global_response_brand['response'][0]['brand_id'], 'smtp_port', $smtp_port);
-                    setEnvValue($db_prefix, $global_response_brand['response'][0]['brand_id'], 'smtp_encryption', $smtp_encryption);
-                    setEnvValue($db_prefix, $global_response_brand['response'][0]['brand_id'], 'smtp_username', $smtp_username);
-                    setEnvValue($db_prefix, $global_response_brand['response'][0]['brand_id'], 'smtp_password', $smtp_password);
+                    if ($smtp_status === 'enabled') {
+                        register_shutdown_function(function() use ($new_csrf_token) {
+                            $error = error_get_last();
+                            if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+                                while (ob_get_level()) { ob_end_clean(); }
+                                http_response_code(200); // Force 200 OK so JS doesn't ignore the JSON!
+                                echo json_encode([
+                                    'status' => 'false', 
+                                    'title' => 'Fatal Error (500)', 
+                                    'message' => $error['message'] . ' in ' . basename($error['file']) . ' on line ' . $error['line'], 
+                                    'csrf_token' => $new_csrf_token
+                                ]);
+                                exit;
+                            }
+                        });
+
+                        require_once __DIR__ . '/PHPMailer/Exception.php';
+                        require_once __DIR__ . '/PHPMailer/PHPMailer.php';
+                        require_once __DIR__ . '/PHPMailer/SMTP.php';
+                        
+                        ob_start();
+                        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                        try {
+                            $mail->isSMTP();
+                            $mail->Host       = $smtp_host;
+                            $mail->SMTPAuth   = true;
+                            $mail->Username   = $smtp_username;
+                            $mail->Password   = $smtp_password;
+                            $mail->SMTPSecure = $smtp_encryption === 'ssl' ? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                            $mail->Port       = $smtp_port;
+                            $mail->SMTPOptions = array(
+                                'ssl' => array(
+                                    'verify_peer' => false,
+                                    'verify_peer_name' => false,
+                                    'allow_self_signed' => true
+                                )
+                            );
+                            $mail->Timeout    = 10;
+                            
+                            if (!$mail->smtpConnect()) {
+                                while (ob_get_level()) { ob_end_clean(); }
+                                echo json_encode(['status' => 'false', 'title' => 'SMTP Connection Failed', 'message' => 'Could not connect to SMTP server. Please verify your Host, Port, and Credentials.', 'csrf_token' => $new_csrf_token]);
+                                exit();
+                            }
+                            $mail->smtpClose();
+                            while (ob_get_level()) { ob_end_clean(); }
+                        } catch (\Throwable $e) {
+                            while (ob_get_level()) { ob_end_clean(); }
+                            echo json_encode(['status' => 'false', 'title' => 'SMTP Error', 'message' => $e->getMessage(), 'csrf_token' => $new_csrf_token]);
+                            exit();
+                        }
+                    }
+
+                    set_env('smtp_status', $smtp_status, $global_response_brand['response'][0]['brand_id']);
+                    set_env('smtp_host', $smtp_host, $global_response_brand['response'][0]['brand_id']);
+                    set_env('smtp_port', $smtp_port, $global_response_brand['response'][0]['brand_id']);
+                    set_env('smtp_encryption', $smtp_encryption, $global_response_brand['response'][0]['brand_id']);
+                    set_env('smtp_username', $smtp_username, $global_response_brand['response'][0]['brand_id']);
+                    set_env('smtp_password', $smtp_password, $global_response_brand['response'][0]['brand_id']);
 
                     echo json_encode(['status' => 'true', 'title' => 'SMTP Setting Updated', 'message' => 'The SMTP setting has been updated successfully.', 'csrf_token' => $new_csrf_token]);
                     exit();
@@ -5567,6 +5615,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                     $facebook_messenger = escape_string($_POST['facebook_messenger'] ?? '');
                     $facebook_page = escape_string($_POST['facebook_page'] ?? '');
                     $autoExchange = escape_string($_POST['autoExchange'] ?? '');
+                    $email_receipt = escape_string($_POST['email_receipt'] ?? 'enabled');
 
                     $dynamicNumericRoute = escape_string($_POST['dynamicNumericRoute'] ?? '');
                     if ($dynamicNumericRoute !== '') {
@@ -7383,7 +7432,7 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
 
                             if (isset($all_transactions) && !empty($all_transactions)) {
                                 foreach($all_transactions as $txn) {
-                                    sendCustomerEmailReceipt($txn, $global_response_brand['response'][0] ?? []);
+                                    sendCustomerEmailReceipt($txn, $global_response_brand['response'][0] ?? $response_brand['response'][0] ?? []);
                                 }
                             }
                             $results = sendIPNMulti($jobs);
@@ -7650,12 +7699,13 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                             "date" => convertUTCtoUserTZ($response_brand['response'][0]['created_date'], ($global_response_brand['response'][0]['timezone'] === '--' || $global_response_brand['response'][0]['timezone'] === '') ? 'Asia/Dhaka' : $global_response_brand['response'][0]['timezone'], "M d, Y h:i A")
                         ];
 
+                        if (isset($ipnData)) {
+                            sendCustomerEmailReceipt($ipnData, $global_response_brand['response'][0] ?? $response_brand['response'][0] ?? []);
+                        }
+
                         if($response_brand['response'][0]['webhook_url'] == "--" || $response_brand['response'][0]['webhook_url'] == ""){
 
                         }else{
-                            if (isset($ipnData)) {
-                                sendCustomerEmailReceipt($ipnData, $global_response_brand['response'][0] ?? $response_brand['response'][0] ?? []);
-                            }
                             sendIPN($response_brand['response'][0]['webhook_url'], $ipnData);
                         }
                     }
@@ -9566,33 +9616,43 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                             $metadata = json_decode($response_transaction2['response'][0]['metadata'], true) ?: [];
                             $customer_info = json_decode($response_transaction2['response'][0]['customer_info'], true) ?: [];
                             
-                            if($response_transaction2['response'][0]['webhook_url'] != "" && $response_transaction2['response'][0]['webhook_url'] != "--"){
-                                $ipnData = [
-                                    "pp_id" => $response_transaction2['response'][0]['ref'],
-                                    "full_name" => $customer_info['name'] ?? 'N/A',
-                                    "email_address" => $customer_info['email'] ?? 'N/A',
-                                    "mobile_number" => $customer_info['mobile'] ?? 'N/A',
-                                    "gateway" => $response_gateway['response'][0]['name'] ?? '',
-                                    "amount" => money_round($response_transaction2['response'][0]['amount']),
-                                    "fee" => money_round($response_transaction2['response'][0]['processing_fee']),
-                                    "discount_amount" => money_round($response_transaction2['response'][0]['discount_amount']),
-                                    "total" => money_sub(money_add($response_transaction2['response'][0]['amount'], $response_transaction2['response'][0]['processing_fee']),$response_transaction2['response'][0]['discount_amount']),
-                                    "local_net_amount" => money_round($response_transaction2['response'][0]['local_net_amount']),
-                                    "currency" => $response_transaction2['response'][0]['currency'],
-                                    "local_currency" => $response_transaction2['response'][0]['local_currency'],
-                                    "metadata" => $metadata,
-                                    "sender" => $mobile_number,
-                                    "transaction_id" => $trxid,
-                                    "status" => $response_transaction2['response'][0]['status'],
-                                    "date" => convertUTCtoUserTZ($response_transaction2['response'][0]['created_date'], ($response_brand['response'][0]['timezone'] === '--' || $response_brand['response'][0]['timezone'] === '') ? 'Asia/Dhaka' : $response_brand['response'][0]['timezone'], "M d, Y h:i A")
-                                ];
+                            $ipnData = [
+                                "pp_id" => $response_transaction2['response'][0]['ref'],
+                                "full_name" => $customer_info['name'] ?? 'N/A',
+                                "email_address" => $customer_info['email'] ?? 'N/A',
+                                "mobile_number" => $customer_info['mobile'] ?? 'N/A',
+                                "gateway" => $response_gateway['response'][0]['name'] ?? '',
+                                "amount" => money_round($response_transaction2['response'][0]['amount']),
+                                "fee" => money_round($response_transaction2['response'][0]['processing_fee']),
+                                "discount_amount" => money_round($response_transaction2['response'][0]['discount_amount']),
+                                "total" => money_sub(money_add($response_transaction2['response'][0]['amount'], $response_transaction2['response'][0]['processing_fee']),$response_transaction2['response'][0]['discount_amount']),
+                                "local_net_amount" => money_round($response_transaction2['response'][0]['local_net_amount']),
+                                "currency" => $response_transaction2['response'][0]['currency'],
+                                "local_currency" => $response_transaction2['response'][0]['local_currency'],
+                                "metadata" => $metadata,
+                                "sender" => $mobile_number,
+                                "transaction_id" => $trxid,
+                                "status" => $response_transaction2['response'][0]['status'],
+                                "date" => convertUTCtoUserTZ($response_transaction2['response'][0]['created_date'], ($response_brand['response'][0]['timezone'] === '--' || $response_brand['response'][0]['timezone'] === '') ? 'Asia/Dhaka' : $response_brand['response'][0]['timezone'], "M d, Y h:i A")
+                            ];
 
+                            $logFile = __DIR__ . '/../../payment_debug.log';
+                            $time = date('Y-m-d H:i:s');
+                            file_put_contents($logFile, "[$time] [AUTO] Transaction {$response_transaction2['response'][0]['ref']} verified automatically.\n", FILE_APPEND);
+
+                            if (isset($ipnData)) {
+                                file_put_contents($logFile, "[$time] [AUTO] Calling sendCustomerEmailReceipt for {$ipnData['email_address']}\n", FILE_APPEND);
+                                sendCustomerEmailReceipt($ipnData, $global_response_brand['response'][0] ?? $response_brand['response'][0] ?? []);
+                            }
+
+                            if($response_transaction2['response'][0]['webhook_url'] != "" && $response_transaction2['response'][0]['webhook_url'] != "--"){
                                 $payload = json_encode($ipnData, JSON_UNESCAPED_UNICODE);
                                 $jobs = [[
                                     'id'      => rand(),
                                     'url'     => $response_transaction2['response'][0]['webhook_url'],
                                     'payload' => json_decode($payload, true),
                                 ]];
+                                file_put_contents($logFile, "[$time] [WEBHOOK-AUTO] Dispatching webhook to {$response_transaction2['response'][0]['webhook_url']}\n", FILE_APPEND);
                                 if (isset($ipnData)) {
                                     sendCustomerEmailReceipt($ipnData, $global_response_brand['response'][0] ?? $response_brand['response'][0] ?? []);
                                 }
@@ -9877,6 +9937,61 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                                                 $methodName = $response_gateway['response'][0]['name'] ?? 'Payment';
                                                                 $identifier = (isset($sender_num) && $sender_num !== '--') ? $sender_num : $trxid;
                                                                 addNotification("Payment Successful", "$cleanAmount " . $response_gateway['response'][0]['currency'] . " | " . $methodName . " | " . $identifier, "success");
+                                                            }
+
+                                                            // Build IPN Data for Email
+                                                            $metadata = json_decode($response_transaction['response'][0]['metadata'], true) ?: [];
+                                                            $customer_info = json_decode($response_transaction['response'][0]['customer_info'], true) ?: [];
+                                                            $response_brand_ipn = json_decode(getData($db_prefix.'brands',' WHERE brand_id ="'.$response_transaction['response'][0]['brand_id'].'"'),true);
+                                                            $net = money_sub(money_add($response_transaction['response'][0]['amount'], $totalProcessingFee), $totalDiscount);
+                                                            $gateway_display = $response_gateway['response'][0]['display'] ?? '';
+
+                                                            $ipnData = [
+                                                                "pp_id" => $response_transaction['response'][0]['ref'],
+                                                                "full_name" => $customer_info['name'] ?? 'N/A',
+                                                                "email_address" => $customer_info['email'] ?? 'N/A',
+                                                                "mobile_number" => $customer_info['mobile'] ?? 'N/A',
+                                                                "gateway" => $gateway_display,
+                                                                "amount" => money_round($response_transaction['response'][0]['amount']),
+                                                                "fee" => money_round($totalProcessingFee),
+                                                                "discount_amount" => money_round($totalDiscount),
+                                                                "total" => money_round($net),
+                                                                "local_net_amount" => money_round($convertedAmount),
+                                                                "currency" => $response_transaction['response'][0]['currency'],
+                                                                "local_currency" => $response_gateway['response'][0]['currency'],
+                                                                "metadata" => $metadata,
+                                                                "sender" => $sender_num,
+                                                                "transaction_id" => $trxid,
+                                                                "status" => 'completed',
+                                                                "date" => convertUTCtoUserTZ(getCurrentDatetime('Y-m-d H:i:s'), ($response_brand_ipn['response'][0]['timezone'] === '--' || $response_brand_ipn['response'][0]['timezone'] === '') ? 'Asia/Dhaka' : $response_brand_ipn['response'][0]['timezone'], "M d, Y h:i A")
+                                                            ];
+
+                                                            $logFile = __DIR__ . '/../../payment_debug.log';
+                                                            $time = date('Y-m-d H:i:s');
+                                                            file_put_contents($logFile, "[$time] [IPN-MANUAL] Transaction {$response_transaction['response'][0]['ref']} verified manually/ipn.\n", FILE_APPEND);
+
+                                                            if (function_exists('sendCustomerEmailReceipt')) {
+                                                                file_put_contents($logFile, "[$time] [IPN-MANUAL] Calling sendCustomerEmailReceipt for {$ipnData['email_address']}\n", FILE_APPEND);
+                                                                sendCustomerEmailReceipt($ipnData, $global_response_brand['response'][0] ?? $response_brand_ipn['response'][0] ?? []);
+                                                            }
+
+                                                            if($response_transaction['response'][0]['webhook_url'] != "" && $response_transaction['response'][0]['webhook_url'] != "--"){
+                                                                $payload = json_encode($ipnData, JSON_UNESCAPED_UNICODE);
+                                                                $jobs = [[
+                                                                    'id'      => rand(),
+                                                                    'url'     => $response_transaction['response'][0]['webhook_url'],
+                                                                    'payload' => json_decode($payload, true),
+                                                                ]];
+                                                                file_put_contents($logFile, "[$time] [WEBHOOK-MANUAL] Dispatching webhook to {$response_transaction['response'][0]['webhook_url']}\n", FILE_APPEND);
+                                                                $results = sendIPNMulti($jobs);
+                                                                foreach ($jobs as $job) {
+                                                                    $code = $results[$job['id']] ?? 0;
+                                                                    if($code !== 200){
+                                                                        $columns = ['ref', 'brand_id', 'payload', 'url', 'created_date', 'updated_date'];
+                                                                        $values = [rand(), $response_transaction['response'][0]['brand_id'], $payload, $response_transaction['response'][0]['webhook_url'], getCurrentDatetime('Y-m-d H:i:s'), getCurrentDatetime('Y-m-d H:i:s')];
+                                                                        insertData($db_prefix.'webhook_log', $columns, $values);
+                                                                    }
+                                                                }
                                                             }
 
                                                             echo json_encode(['status' => "true", 'title' => 'Transaction Verified', 'message' => 'The Transaction ID has been successfully verified.', 'redirect' => $site_url.$path_payment.'/'.$transaction_id, 'trxid' => $trxid, 'sender' => $sender_num]);

@@ -1996,7 +1996,17 @@
                     "date" => convertUTCtoUserTZ($response_transaction['response'][0]['created_date'], ($response_brand['response'][0]['timezone'] === '--' || $response_brand['response'][0]['timezone'] === '') ? 'Asia/Dhaka' : $response_brand['response'][0]['timezone'], "M d, Y h:i A")
                 ];
 
+                $logFile = __DIR__ . '/../../payment_debug.log';
+                $time = date('Y-m-d H:i:s');
+                file_put_contents($logFile, "[$time] [IPN] Transaction {$response_transaction['response'][0]['ref']} marked as completed.\n", FILE_APPEND);
+
+                if (isset($all_transactions[0])) {
+                    file_put_contents($logFile, "[$time] [IPN] Calling sendCustomerEmailReceipt for {$all_transactions[0]['email_address']}\n", FILE_APPEND);
+                    sendCustomerEmailReceipt($all_transactions[0], $response_brand['response'][0] ?? []);
+                }
+
                 if($response_transaction['response'][0]['webhook_url'] == "" || $response_transaction['response'][0]['webhook_url'] == "--"){
+
 
                 }else{
                     $ipnData = [
@@ -2027,6 +2037,7 @@
                         'payload' => json_decode($payload, true),
                     ]];
 
+                    file_put_contents($logFile, "[$time] [WEBHOOK] Dispatching webhook to {$response_transaction['response'][0]['webhook_url']}\n", FILE_APPEND);
                     $results = sendIPNMulti($jobs);
 
                     foreach ($jobs as $job) {
@@ -2951,18 +2962,18 @@
                 $step2app = 'আপনার পেমেন্ট';
                 $step2appEn = 'Payment';
                 $step2action = 'সেন্ড মানি';
-                $step3text = 'একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট সেন্ড মানি করুন।';
+                $step3text = 'কপি করা একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট সেন্ড মানি করুন।';
                 $appType = 'personal';
                 $numberTextBn = 'পার্সোনাল';
 
                 if (strpos(strtolower($slug), 'merchant') !== false) {
                     $step2action = 'পেমেন্ট';
-                    $step3text = 'একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট পেমেন্ট করুন।';
+                    $step3text = 'কপি করা একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট পেমেন্ট করুন।';
                     $appType = 'merchant';
                     $numberTextBn = 'মার্চেন্ট';
                 } elseif (strpos(strtolower($slug), 'agent') !== false) {
                     $step2action = 'ক্যাশ আউট';
-                    $step3text = 'একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট ক্যাশ আউট করুন।';
+                    $step3text = 'কপি করা একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট ক্যাশ আউট করুন।';
                     $appType = 'agent';
                     $numberTextBn = 'এজেন্ট';
                 }
@@ -2973,7 +2984,7 @@
                     $numberTextBn = 'উদ্যোক্তা';
                 }
                 
-                $step3text = $numberTextBn . ' নম্বর কপি করুন এবং কাঙ্খিত এমাউন্ট ' . $step2action . ' করুন।';
+                $step3text = 'কপি করা ' . $numberTextBn . ' নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট ' . $step2action . ' করুন।';
 
                 $nagadBrandedHeader = false;
                 $upayBrandedHeader = false;
@@ -3016,7 +3027,7 @@
                     $step2appEn = 'Cellfin';
                     if ($appType == 'personal') {
                         $step2action = 'ফান্ড ট্রান্সফার';
-                        $step3text = 'একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট ফান্ড ট্রান্সফার করুন।';
+                        $step3text = 'কপি করা একাউন্ট নম্বর পেস্ট করুন এবং কাঙ্খিত এমাউন্ট ফান্ড ট্রান্সফার করুন।';
                     }
                     $cartBg = '#e6f3eb';
                     $cartColor = '#00803d';
@@ -5029,9 +5040,20 @@ if (!function_exists('pp_renderFormFields')) {
     }
 
 function sendCustomerEmailReceipt($ipnData, $brandData) {
-    if (($brandData['email_receipt'] ?? 'enabled') !== 'enabled') return false;
+    $logFile = __DIR__ . '/../../payment_debug.log';
+    $time = date('Y-m-d H:i:s');
+    file_put_contents($logFile, "[$time] [EMAIL] Starting sendCustomerEmailReceipt for " . ($ipnData['transaction_id'] ?? 'Unknown') . "\n", FILE_APPEND);
+
+    if (($brandData['email_receipt'] ?? 'enabled') !== 'enabled') {
+        file_put_contents($logFile, "[$time] [EMAIL] Aborted: email_receipt is not enabled for this brand.\n", FILE_APPEND);
+        return false;
+    }
+    
     $to = $ipnData['email_address'] ?? '';
-    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        file_put_contents($logFile, "[$time] [EMAIL] Aborted: Invalid or empty email address provided: '$to'\n", FILE_APPEND);
+        return false;
+    }
     
     $brand_name = $brandData['name'] !== '--' ? $brandData['name'] : $brandData['identify_name'];
     $subject = "Payment Receipt - $brand_name";
@@ -5066,7 +5088,7 @@ function sendCustomerEmailReceipt($ipnData, $brandData) {
     
     $fromEmail = $brandData["support_email_address"] ?? ""; if (empty($fromEmail) || $fromEmail === "--" || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) { $fromEmail = "noreply@" . $parsedDomain; }
     
-    $smtp_status = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_status');
+    $smtp_status = get_env('smtp_status', $brandData['brand_id']);
     
     if ($smtp_status === 'enabled') {
         require_once __DIR__ . '/PHPMailer/Exception.php';
@@ -5076,12 +5098,19 @@ function sendCustomerEmailReceipt($ipnData, $brandData) {
         $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
         try {
             $mail->isSMTP();
-            $mail->Host       = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_host');
+            $mail->Host       = get_env('smtp_host', $brandData['brand_id']);
             $mail->SMTPAuth   = true;
-            $mail->Username   = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_username');
-            $mail->Password   = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_password');
-            $mail->SMTPSecure = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_encryption') === 'ssl' ? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_port');
+            $mail->Username   = get_env('smtp_username', $brandData['brand_id']);
+            $mail->Password   = get_env('smtp_password', $brandData['brand_id']);
+            $mail->SMTPSecure = get_env('smtp_encryption', $brandData['brand_id']) === 'ssl' ? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = get_env('smtp_port', $brandData['brand_id']);
+            $mail->SMTPOptions = array(
+                'ssl' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                )
+            );
             
             $mail->setFrom($fromEmail, $brand_name);
             $mail->addAddress($to);
@@ -5089,9 +5118,11 @@ function sendCustomerEmailReceipt($ipnData, $brandData) {
             $mail->Subject = $subject;
             $mail->Body    = $message;
             
-            return $mail->send();
+            $result = $mail->send();
+            file_put_contents($logFile, "[$time] [EMAIL] SMTP Success! Email sent to $to\n", FILE_APPEND);
+            return $result;
         } catch (\Exception $e) {
-            file_put_contents(__DIR__ . '/../../mail_debug.log', date('Y-m-d H:i:s') . " - SMTP FAILED. To: $to. Error: {$mail->ErrorInfo}\n", FILE_APPEND);
+            file_put_contents($logFile, "[$time] [EMAIL] SMTP FAILED. To: $to. Error: {$mail->ErrorInfo}\n", FILE_APPEND);
             return false;
         }
     } else {
@@ -5101,7 +5132,9 @@ function sendCustomerEmailReceipt($ipnData, $brandData) {
         
         $result = @mail($to, $subject, $message, $headers, "-f $fromEmail");
         if(!$result) {
-            file_put_contents(__DIR__ . '/../../mail_debug.log', date('Y-m-d H:i:s') . " - FAILED. To: $to, From: $fromEmail. Error: " . print_r(error_get_last(), true) . "\n", FILE_APPEND);
+            file_put_contents($logFile, "[$time] [EMAIL] PHP mail() FAILED. To: $to, From: $fromEmail. Error: " . print_r(error_get_last(), true) . "\n", FILE_APPEND);
+        } else {
+            file_put_contents($logFile, "[$time] [EMAIL] PHP mail() Success! Sent to $to\n", FILE_APPEND);
         }
         return $result;
     }
