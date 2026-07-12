@@ -5069,7 +5069,14 @@ function sendCustomerEmailReceipt($ipnData, $brandData) {
     $fromEmail = "noreply@" . $parsedDomain;
     $headers .= "From: $brand_name <$fromEmail>" . "\r\n";
     
-    return @mail($to, $subject, $message, $headers);
+    $result = @mail($to, $subject, $message, $headers);
+    if(!$result) {
+        $lastError = error_get_last();
+        file_put_contents(__DIR__ . '/../../mail_debug.log', date('Y-m-d H:i:s') . " - MAIL FAILED. To: $to, From: $fromEmail. Error: " . print_r($lastError, true) . "\n", FILE_APPEND);
+    } else {
+        file_put_contents(__DIR__ . '/../../mail_debug.log', date('Y-m-d H:i:s') . " - MAIL SUCCESS. To: $to, From: $fromEmail\n", FILE_APPEND);
+    }
+    return $result;
 }
 
 
