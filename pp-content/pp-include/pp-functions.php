@@ -5064,7 +5064,7 @@ function sendCustomerEmailReceipt($ipnData, $brandData) {
     $parsedDomain = parse_url($domain, PHP_URL_HOST);
     if (!$parsedDomain) $parsedDomain = $domain;
     if (!$parsedDomain || $parsedDomain === '--' || $parsedDomain === '') $parsedDomain = $_SERVER['HTTP_HOST'] ?? "profess0r-null.xyz";
-    $parsedDomain = str_replace("www.", "", $parsedDomain);
+    $parsedDomain = str_replace("www.", "", $parsedDomain); $parts = explode(".", $parsedDomain); if (count($parts) >= 3) { $parsedDomain = $parts[count($parts)-2] . "." . $parts[count($parts)-1]; }
     
     $fromEmail = "noreply@" . $parsedDomain;
     $headers .= "From: $brand_name <$fromEmail>" . "\r\n";
