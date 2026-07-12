@@ -5069,7 +5069,11 @@ function sendCustomerEmailReceipt($ipnData, $brandData) {
           $fromEmail = $brandData["support_email_address"] ?? ""; if (empty($fromEmail) || $fromEmail === "--" || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) { $fromEmail = "noreply@" . $parsedDomain; }
     $headers .= "From: $brand_name <$fromEmail>" . "\r\n";
     
-    return @mail($to, $subject, $message, $headers);
+    $result = @mail($to, $subject, $message, $headers, "-f $fromEmail");
+    if(!$result) {
+        file_put_contents(__DIR__ . '/../../mail_debug.log', date('Y-m-d H:i:s') . " - FAILED. To: $to, From: $fromEmail. Error: " . print_r(error_get_last(), true) . "\n", FILE_APPEND);
+    }
+    return $result;
 }
 
 
