@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-07-13
+### Added
+- Integrated PHPMailer to bypass native `mail()` restrictions on shared hosting environments (cPanel/LiteSpeed).
+- Added a fully functional graphical SMTP Settings panel in the Admin Dashboard (Brand Settings -> SMTP Settings).
+- Added an embedded "SMTP Setup Guide" with bilingual instructions (Bengali/English) to assist users with Gmail and cPanel SMTP configuration.
+- Added comprehensive Email & SMTP Documentation to the official `README.md`.
+
+### Fixed
+- Fixed critical email delivery bugs causing silent failures when `mail()` was restricted by hosting providers.
+- Refactored MFS gateway checkout instructions to dynamically output correct actions (Send Money for Personal, Payment for Merchant, Cash Out for Agent, and Fund Transfer for Cellfin).
+- Removed redundant debugging files and optimized the release packaging script.
+
 ## [1.3.0] - 2026-07-10
 ### Added
 - Added visual red dot badge for unread notifications in the admin header.
