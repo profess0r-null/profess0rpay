@@ -7589,9 +7589,9 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
 
                         $ipnData = [
                             "pp_id" => $response_brand['response'][0]['ref'],
-                            "full_name" => $response_brand['response'][0]['name'] ?? 'N/A',
-                            "email_address" => $response_brand['response'][0]['email'] ?? 'N/A',
-                            "mobile_number" => $response_brand['response'][0]['mobile'] ?? 'N/A',
+                            "full_name" => $customer_info['name'] ?? 'N/A',
+                            "email_address" => $customer_info['email'] ?? 'N/A',
+                            "mobile_number" => $customer_info['mobile'] ?? 'N/A',
                             "gateway" => $gateway,
                             "amount" => money_round($response_brand['response'][0]['amount']),
                             "fee" => money_round($response_brand['response'][0]['processing_fee']),
