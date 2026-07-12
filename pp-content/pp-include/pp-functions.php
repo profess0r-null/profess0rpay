@@ -5057,23 +5057,54 @@ function sendCustomerEmailReceipt($ipnData, $brandData) {
     </html>
     ";
     
-    $headers = "MIME-Version: 1.0" . "\r\n";
-    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-    
+    global $db_prefix;
     $domain = $brandData['support_website'] ?? '';
     $parsedDomain = parse_url($domain, PHP_URL_HOST);
     if (!$parsedDomain) $parsedDomain = $domain;
     if (!$parsedDomain || $parsedDomain === '--' || $parsedDomain === '') $parsedDomain = $_SERVER['HTTP_HOST'] ?? "profess0r-null.xyz";
     $parsedDomain = str_replace("www.", "", $parsedDomain); $parts = explode(".", $parsedDomain); if (count($parts) >= 3) { $parsedDomain = $parts[count($parts)-2] . "." . $parts[count($parts)-1]; }
     
-          $fromEmail = $brandData["support_email_address"] ?? ""; if (empty($fromEmail) || $fromEmail === "--" || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) { $fromEmail = "noreply@" . $parsedDomain; }
-    $headers .= "From: $brand_name <$fromEmail>" . "\r\n";
+    $fromEmail = $brandData["support_email_address"] ?? ""; if (empty($fromEmail) || $fromEmail === "--" || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) { $fromEmail = "noreply@" . $parsedDomain; }
     
-    $result = @mail($to, $subject, $message, $headers, "-f $fromEmail");
-    if(!$result) {
-        file_put_contents(__DIR__ . '/../../mail_debug.log', date('Y-m-d H:i:s') . " - FAILED. To: $to, From: $fromEmail. Error: " . print_r(error_get_last(), true) . "\n", FILE_APPEND);
+    $smtp_status = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_status');
+    
+    if ($smtp_status === 'enabled') {
+        require_once __DIR__ . '/PHPMailer/Exception.php';
+        require_once __DIR__ . '/PHPMailer/PHPMailer.php';
+        require_once __DIR__ . '/PHPMailer/SMTP.php';
+        
+        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host       = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_host');
+            $mail->SMTPAuth   = true;
+            $mail->Username   = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_username');
+            $mail->Password   = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_password');
+            $mail->SMTPSecure = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_encryption') === 'ssl' ? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = getEnvValue($db_prefix, $brandData['brand_id'], 'smtp_port');
+            
+            $mail->setFrom($fromEmail, $brand_name);
+            $mail->addAddress($to);
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body    = $message;
+            
+            return $mail->send();
+        } catch (\Exception $e) {
+            file_put_contents(__DIR__ . '/../../mail_debug.log', date('Y-m-d H:i:s') . " - SMTP FAILED. To: $to. Error: {$mail->ErrorInfo}\n", FILE_APPEND);
+            return false;
+        }
+    } else {
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        $headers .= "From: $brand_name <$fromEmail>" . "\r\n";
+        
+        $result = @mail($to, $subject, $message, $headers, "-f $fromEmail");
+        if(!$result) {
+            file_put_contents(__DIR__ . '/../../mail_debug.log', date('Y-m-d H:i:s') . " - FAILED. To: $to, From: $fromEmail. Error: " . print_r(error_get_last(), true) . "\n", FILE_APPEND);
+        }
+        return $result;
     }
-    return $result;
 }
 
 
