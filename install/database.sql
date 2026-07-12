@@ -818,7 +818,7 @@ CREATE TABLE IF NOT EXISTS `pp_migrations` (
     `executed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `pp_env` (`brand_id`, `option_name`, `value`, `created_date`) VALUES ('both', 'pp_version', '1.3.0', NOW());
+INSERT INTO `pp_env` (`brand_id`, `option_name`, `value`, `created_date`) VALUES ('both', 'pp_version', '1.3.2', NOW());
 
 
 
