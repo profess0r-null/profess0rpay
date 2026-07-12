@@ -1,11 +1,7 @@
 <?php
 // Simple mail test script for Profess0rPay users
-$to = $_GET['to'] ?? '';
-$from = $_GET['from'] ?? '';
-
-if(empty($to) || empty($from)) {
-    die("Please provide 'to' and 'from' parameters. Example: ?to=your_email@gmail.com&from=contact@profess0r-null.xyz");
-}
+$to = 'sakibulhasantalukder2006@gmail.com';
+$from = 'contact@profess0r-null.xyz';
 
 $subject = "Profess0rPay Debug Test Email";
 $message = "This is a test email from the debug script.";
