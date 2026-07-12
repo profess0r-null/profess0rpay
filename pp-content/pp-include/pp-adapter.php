@@ -7337,6 +7337,11 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                             error_log("DEBUG: jobs count = " . count($jobs));
                             error_log("DEBUG: all_transactions count = " . count($all_transactions));
 
+                            if (isset($all_transactions) && !empty($all_transactions)) {
+                                foreach($all_transactions as $txn) {
+                                    sendCustomerEmailReceipt($txn, $global_response_brand['response'][0] ?? []);
+                                }
+                            }
                             $results = sendIPNMulti($jobs);
 
                             foreach ($jobs as $job) {
@@ -7604,6 +7609,9 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                         if($response_brand['response'][0]['webhook_url'] == "--" || $response_brand['response'][0]['webhook_url'] == ""){
 
                         }else{
+                            if (isset($ipnData)) {
+                                sendCustomerEmailReceipt($ipnData, $global_response_brand['response'][0] ?? $response_brand['response'][0] ?? []);
+                            }
                             sendIPN($response_brand['response'][0]['webhook_url'], $ipnData);
                         }
                     }
@@ -9541,6 +9549,9 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                                     'url'     => $response_transaction2['response'][0]['webhook_url'],
                                     'payload' => json_decode($payload, true),
                                 ]];
+                                if (isset($ipnData)) {
+                                    sendCustomerEmailReceipt($ipnData, $global_response_brand['response'][0] ?? $response_brand['response'][0] ?? []);
+                                }
                                 $results = sendIPNMulti($jobs);
 
                                 foreach ($jobs as $job) {
