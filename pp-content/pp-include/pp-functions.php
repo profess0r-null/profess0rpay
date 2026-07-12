@@ -5063,20 +5063,13 @@ function sendCustomerEmailReceipt($ipnData, $brandData) {
     $domain = $brandData['support_website'] ?? '';
     $parsedDomain = parse_url($domain, PHP_URL_HOST);
     if (!$parsedDomain) $parsedDomain = $domain;
-    if (!$parsedDomain) $parsedDomain = "profess0r-null.xyz";
+    if (!$parsedDomain || $parsedDomain === '--' || $parsedDomain === '') $parsedDomain = $_SERVER['HTTP_HOST'] ?? "profess0r-null.xyz";
     $parsedDomain = str_replace("www.", "", $parsedDomain);
     
     $fromEmail = "noreply@" . $parsedDomain;
     $headers .= "From: $brand_name <$fromEmail>" . "\r\n";
     
-    $result = @mail($to, $subject, $message, $headers);
-    if(!$result) {
-        $lastError = error_get_last();
-        file_put_contents(__DIR__ . '/../../mail_debug.log', date('Y-m-d H:i:s') . " - MAIL FAILED. To: $to, From: $fromEmail. Error: " . print_r($lastError, true) . "\n", FILE_APPEND);
-    } else {
-        file_put_contents(__DIR__ . '/../../mail_debug.log', date('Y-m-d H:i:s') . " - MAIL SUCCESS. To: $to, From: $fromEmail\n", FILE_APPEND);
-    }
-    return $result;
+    return @mail($to, $subject, $message, $headers);
 }
 
 
