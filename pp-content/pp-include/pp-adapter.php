@@ -5571,6 +5571,15 @@ aa021689e729dc2302b47e9bdc7d1a9f8b72f95f01530da35bf3b848b188d5b1
                             exit();
                         }
 
+                        try {
+                            $mig_pdo = connectDatabase();
+                            $newCols = ['support_phone_number', 'support_email_address', 'support_website', 'whatsapp_number', 'telegram', 'facebook_messenger', 'facebook_page', 'email_receipt'];
+                            foreach($newCols as $col) {
+                                try { $mig_pdo->exec("ALTER TABLE `{$db_prefix}brands` ADD COLUMN `$col` text DEFAULT NULL"); } catch (\Throwable $e) {}
+                            }
+                        } catch (\Throwable $e) {}
+
+
                         $columns = ['email_receipt', 'autoExchange', 'favicon', 'logo', 'name', 'timezone', 'language', 'currency_code', 'payment_tolerance', 'redirect_url', 'street_address', 'city_town', 'postal_code', 'country', 'support_phone_number', 'support_email_address', 'support_website', 'whatsapp_number', 'telegram', 'facebook_messenger', 'facebook_page', 'updated_date'];
                         $values = [$email_receipt, $autoExchange, $branding_favicon, $branding_primary_logo, $site_name, $default_timezone, $default_language, $default_currency, money_sanitize($payment_tolerance), $redirect_url, $street_address, $city_town, $postal_code, $country, $support_phone_number, $support_email_address, $support_website, $whatsapp_number, $telegram, $facebook_messenger, $facebook_page, getCurrentDatetime('Y-m-d H:i:s')];
                         $condition = "brand_id = '".$global_response_brand['response'][0]['brand_id']."'"; 
