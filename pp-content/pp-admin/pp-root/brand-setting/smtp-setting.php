@@ -165,6 +165,10 @@ $('.form-smtp-setting').on('submit', function (e) {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <p class="mb-3">
+            <strong>SMTP কী এবং এর কাজ কী?</strong><br>
+            SMTP (Simple Mail Transfer Protocol) হলো ইমেইল আদান-প্রদানের একটি প্রোটোকল। সার্ভার থেকে সরাসরি ইমেইল পাঠালে স্প্যামারদের কারণে জিমেইল তা অনেক সময় ব্লক করে দেয়। কিন্তু আপনি যদি আপনার নিজস্ব জিমেইল বা প্রফেশনাল ইমেইলের সিকিউর SMTP ব্যবহার করেন, তবে ইমেইলগুলো ১০০% ভেরিফায়েড হয়ে সরাসরি গ্রাহকের ইনবক্সে (Inbox) ডেলিভারি হবে।
+        </p>
         <p class="mb-3">আপনার ওয়েবসাইটের ইমেইলগুলো যাতে স্প্যামে না গিয়ে সরাসরি গ্রাহকের ইনবক্সে যায়, সেজন্য নিচের যেকোনো একটি অপশন ব্যবহার করে SMTP কনফিগার করুন।</p>
         
         <h4 class="text-primary">Option 1: Gmail SMTP Setup (সবচেয়ে সহজ)</h4>
