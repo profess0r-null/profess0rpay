@@ -163,7 +163,8 @@ This project was built to expand upon open-source payment automation capabilitie
 
 ## 📅 Release Strategy
 
-- **v1.3.0** — Feature & UX Update (Current): Major Stability, UI/UX Improvements, Smart Redirects, Rebranded 3rd Party Plugins, Dynamic API URLs.
+- **v1.3.2** — Patch (Current): SMTP Integration, Core Bug Fixes, Invalid Token Fixes, DNS & Delivery Improvements.
+- **v1.3.0** — Feature & UX Update: Major Stability, UI/UX Improvements, Smart Redirects, Rebranded 3rd Party Plugins, Dynamic API URLs.
 - **v1.2.3** — Patch: SMS Device Fixes, Dynamic Timezones, Webhook Buttons, and Update Confirmations.
 - **v1.0.0** — Stable: Installer, White-label Branding, Admin Panel, Payment Links, REST API.
 - **v1.3** — Planned: WooCommerce Plugin / PHP SDK.
